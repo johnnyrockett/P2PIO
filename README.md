@@ -4,14 +4,29 @@ This is a clone of the original Paper-IO released by Voodoo, except for one aspe
 
 This is just a fun side-project for me. If you would want to use this code, it would be nice to let me know.
 
+## Install
+
+```bash
+git clone https://github.com/stevenjoezhang/paper.io.git
+cd paper.io
+npm install
+```
+
 ## Running
 
 After cloning this repository, run the follow commands to install dependencies and set up server. Enjoy!
 
 ```bash
-npm install
 npm start
 ```
+
+## Build
+
+```bash
+sudo npm install -g browserify uglify-es
+browserify game-client.js | uglifyjs > public/bundle.js
+```
+
 ## License
 
 This is licensed under MIT. As such, please provide due credit and link back to this repository if possible.
