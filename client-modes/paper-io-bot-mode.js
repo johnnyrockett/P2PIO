@@ -39,9 +39,7 @@ function Loc(row, col) {
 }
 
 function update(frame) {
-	if (startFrame == -1) {
-		startFrame = frame;
-	}
+	if (startFrame == -1) startFrame = frame;
 	endFrame = frame;
 
 	if (frame % 6 == (startFrame + 1) % 6) {

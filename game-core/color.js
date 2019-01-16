@@ -1,3 +1,8 @@
+function verifyRange() {
+	for (var i = 0; i < arguments.length; i++) {
+		if (arguments[i] < 0 || arguments[i] > 1) throw new RangeError("H, S, L, and A parameters must be between the range [0, 1]");
+	}
+}
 function Color(h, s, l, a) {
 	verifyRange(h, s, l);
 	if (a === undefined) a = 1;
@@ -24,23 +29,19 @@ function Color(h, s, l, a) {
 Color.fromData = function(data) {
 	return new Color(data.hue, data.sat, data.lum, data.alpha);
 };
-
-function verifyRange() {
-	for (var i = 0; i < arguments.length; i++) {
-		if (arguments[i] < 0 || arguments[i] > 1) throw new RangeError("H, S, L, and A parameters must be between the range [0, 1]");
-	}
-}
 Color.prototype.interpolateToString = function(color, amount) {
 	var rgbThis = hslToRgb(this.hue, this.sat, this.lum);
 	var rgbThat = hslToRgb(color.hue, color.sat, color.lum);
 	var rgb = [];
-	for (var i = 0; i < 3; i++) rgb[i] = Math.floor((rgbThat[i] - rgbThis[i]) * amount + rgbThis[i]);
+	for (var i = 0; i < 3; i++) {
+		rgb[i] = Math.floor((rgbThat[i] - rgbThis[i]) * amount + rgbThis[i]);
+	}
 	return {
 		rgbString: function() {
 			return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`
 		}
 	};
-}
+};
 Color.prototype.deriveLumination = function(amount) {
 	var lum = this.lum + amount;
 	lum = Math.min(Math.max(lum, 0), 1);
@@ -64,7 +65,7 @@ Color.prototype.rgbString = function() {
 	rgb[3] = this.a;
 	return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${this.alpha})`;
 };
-//http://stackoverflow.com/a/9493060/7344257
+//https://stackoverflow.com/a/9493060/7344257
 function hslToRgb(h, s, l) {
 	var r, g, b;
 	if (s == 0) r = g = b = l; // achromatic

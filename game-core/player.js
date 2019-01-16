@@ -231,13 +231,7 @@ function fillTail(data) {
 		var r = coord[0];
 		var c = coord[1];
 
-		if (grid.isOutOfBounds(r, c)) {
-			continue;
-		}
-
-		if (been.get(r, c)) {
-			continue;
-		}
+		if (grid.isOutOfBounds(r, c) || been.get(r, c)) continue;
 
 		if (onTail(coord)) {//On the tail
 			been.set(r, c, true);
@@ -302,9 +296,9 @@ function floodFill(data, grid, row, col, been) {
 }
 
 function hitsTail(data, other) {
-	return (data.prevRow !== other.row || data.prevCol !== other.col) &&
-		(data.startRow !== other.row || data.startCol !== other.col) &&
-		!!(data.tailGrid[other.row] && data.tailGrid[other.row][other.col]);
+	return (data.prevRow !== other.row || data.prevCol !== other.col)
+	&& (data.startRow !== other.row || data.startCol !== other.col)
+	&& !!(data.tailGrid[other.row] && data.tailGrid[other.row][other.col]);
 }
 
 var SPEED = 5;
@@ -325,9 +319,7 @@ function Player(grid, sdata) {
 
 	//Only need colors for client side
 	var base;
-	if (sdata.base) {
-		base = this.baseColor = sdata.base instanceof Color ? sdata.base : Color.fromData(sdata.base);
-	}
+	if (sdata.base) base = this.baseColor = sdata.base instanceof Color ? sdata.base : Color.fromData(sdata.base);
 	else {
 		var hue = Math.random();
 		this.baseColor = base = new Color(hue, .8, .5);
@@ -338,9 +330,7 @@ function Player(grid, sdata) {
 
 	//Tail requires special handling
 	this.grid = grid; //Temporary
-	if (sdata.tail) {
-		data.tail = new Tail(this, sdata.tail);
-	}
+	if (sdata.tail) data.tail = new Tail(this, sdata.tail);
 	else {
 		data.tail = new Tail(this);
 		data.tail.reposition(calcRow(data), calcCol(data));
@@ -409,8 +399,7 @@ Player.prototype.render = function(ctx, fade) {
 	ctx.textAlign = "center";
 
 	var yoff = -SHADOW_OFFSET * 2;
-	if (this.row === 0)
-		yoff = SHADOW_OFFSET * 2 + CELL_WIDTH;
+	if (this.row === 0) yoff = SHADOW_OFFSET * 2 + CELL_WIDTH;
 	ctx.font = "18px Changa";
 	ctx.fillText(this.name, this.posX + CELL_WIDTH / 2, this.posY + yoff);
 };
