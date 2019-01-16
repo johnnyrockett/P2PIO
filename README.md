@@ -20,13 +20,25 @@ After cloning this repository, run the follow commands to install dependencies a
 npm start
 ```
 
+## Bots
+
+```bash
+node src/bot/paper-io-bot-mode.js ws://localhost:8081
+```
+
 ## Build
 
 ```bash
 sudo npm install -g browserify uglify-es
-browserify game-client.js | uglifyjs > public/bundle.js
+browserify client.js | uglifyjs > public/bundle.js
 ```
 
 ## License
 
 This is licensed under MIT. As such, please provide due credit and link back to this repository if possible.
+
+Original Repo:
+
+- Author: theKidOfArcrania
+
+- Link: https://github.com/theKidOfArcrania/BlocklyIO

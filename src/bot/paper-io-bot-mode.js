@@ -1,15 +1,10 @@
 if (process.argv.length < 3) {
-	console.log("Usage: node game-client-bot.js <socket-url> [<name>]")
+	console.log("Usage: node paper-io-bot-mode.js <socket-url> [<name>]")
 	process.exit(1);
 }
 
-var oldlog = console.log;
-console.log = function(msg) {
-	return oldlog(`[${new Date()}] ${msg}`);
-}
-
-var core = require("../game-core");
-var client = require("../client");
+var core = require("../core");
+var client = require("../game-client");
 
 var GRID_SIZE = core.GRID_SIZE;
 var CELL_WIDTH = core.CELL_WIDTH;
@@ -18,6 +13,10 @@ var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]]
 var startFrame = -1;
 var endFrame = -1;
 var grid, others, user, playerPortion = {}, claim = [];
+
+function log(msg) {
+	return console.log(`[${new Date()}] ${msg}`);
+}
 
 function mod(x) {
 	x %= 4;
@@ -189,8 +188,8 @@ client.renderer = {
 		var dt = (endFrame - startFrame);
 		startFrame = -1;
 
-		console.log("I died... (survived for " + dt + " frames.)");
-		console.log("I killed " + client.kills + " player(s).");
+		log("I died... (survived for " + dt + " frames.)");
+		log("I killed " + client.kills + " player(s).");
 		connect();
 	},
 	removePlayer: function(player) {

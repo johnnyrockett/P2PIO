@@ -18,9 +18,10 @@ var server = http.createServer(function onRequest(req, res) {
 // Listen
 server.listen(port, hostname);
 server = http.createServer();
+
 var io = require("socket.io")(server);
 io.set("transports", ["websocket"]);
-var Game = require("./game-server.js");
+var Game = require("./src/game-server.js");
 var games = [new Game()];
 io.on("connection", function(socket) {
 	socket.on("hello", function(data, fn) {

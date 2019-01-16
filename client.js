@@ -1,291 +1,100 @@
-var core = require("./game-core");
-var Player = core.Player;
+/* global $ */
+
 var io = require("socket.io-client");
+var client = require("./src/game-client");
+client.allowAnimation = true;
+client.renderer = require("./src/user-mode");
+var core = require("./src/core");
 var GRID_SIZE = core.GRID_SIZE;
 var CELL_WIDTH = core.CELL_WIDTH;
-var running = false;
-var user, socket, frame;
-var players, allPlayers;
-var kills;
-var timeout = undefined;
-var dirty = false;
-var deadFrames = 0;
-var requesting = -1; //frame that we are requesting at
-var frameCache = []; //Frames after our request
-var allowAnimation = true;
-var grid = new core.Grid(core.GRID_SIZE, function(row, col, before, after) {
-	invokeRenderer("updateGrid", [row, col, before, after]);
-});
 
-var mimiRequestAnimationFrame = window && window.document
-	?  window.requestAnimationFrame
+var mimiRequestAnimationFrame = window.requestAnimationFrame
 	|| window.webkitRequestAnimationFrame
 	|| window.mozRequestAnimationFrame
 	|| window.oRequestAnimationFrame
 	|| window.msRequestAnimationFrame
-	|| function(callback) { window.setTimeout(callback, 1000 / 30) }
-	:  function(callback) { window.setTimeout(callback, 1000 / 30) };
+	|| function(callback) { window.setTimeout(callback, 1000 / 30) };
 
-//Public API
-function connectGame(url, name, callback) {
-	if (running) return; //Prevent multiple runs
-	running = true;
-	user = null;
-	deadFrames = 0;
-	//Socket connection
-	io.j = [];
-	io.sockets = [];
-	socket = io(url, {
-		"forceNew": true,
+function run() {
+	var names = "Alice Bob Carol Dave Eve Francis Grace Hans Isabella Jason Kate Louis Margaret Nathan Olivia Paul Queen Richard Susan Thomas Uma Vivian Winnie Xander Yasmine Zach".split(" ");
+	var prefix = "Angry Baby Crazy Diligent Excited Fat Greedy Hungry Interesting Japanese Kind Little Magic Naïve Old Powerful Quiet Rich Superman THU Undefined Valuable Wifeless Xiangbuchulai Young Zombie".split(" ");
+	var name = $("#name").val() || [prefix[Math.floor(Math.random() * prefix.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
+	$("#name").val(name);
+	client.connectGame("//" + window.location.hostname + ":8081", name, function(success, msg) {
+		if (success) {
+			$("#begin").fadeOut(1000);
+			$("#main-ui").fadeIn(1000);
+		}
+		else {
+			var error = $("#error");
+			error.text(msg);
+		}
+	});
+}
+$(function() {
+	var error = $("#error");
+	if (!window.WebSocket) {
+		error.text("Your browser does not support WebSockets!");
+		return;
+	}
+	error.text("Loading... Please wait"); //TODO: show loading screen
+	var socket = io("//" + window.location.hostname + ":8081", {
+		forceNew: true,
 		upgrade: false,
 		transports: ["websocket"]
 	});
 	socket.on("connect", function() {
-		console.info("Connected to server.");
+		socket.emit("pings");
 	});
-	socket.on("game", function(data) {
-		if (timeout != undefined) clearTimeout(timeout);
-		//Initialize game.
-		//TODO: display data.gameid --- game id #
-		frame = data.frame;
-		reset();
-		//Load players.
-		data.players.forEach(function(p) {
-			var pl = new Player(grid, p);
-			addPlayer(pl);
+	socket.on("pongs", function() {
+		socket.disconnect();
+		error.text("All done, have fun!");
+		$("#name").keypress(function(evt) {
+			if (evt.which === 13) mimiRequestAnimationFrame(run);
 		});
-		user = allPlayers[data.num];
-		if (!user) throw new Error();
-		setUser(user);
-		//Load grid.
-		var gridData = new Uint8Array(data.grid);
-		for (var r = 0; r < grid.size; r++) {
-			for (var c = 0; c < grid.size; c++) {
-				var ind = gridData[r * grid.size + c] - 1;
-				grid.set(r, c, ind === -1 ? null : players[ind]);
-			}
-		}
-		invokeRenderer("paint", []);
-		frame = data.frame;
-		if (requesting !== -1) {
-			//Update those cache frames after we updated game.
-			var minFrame = requesting;
-			requesting = -1;
-			while (frameCache.length > frame - minFrame) processFrame(frameCache[frame - minFrame]);
-			frameCache = [];
-		}
-	});
-	socket.on("notifyFrame", processFrame);
-	socket.on("dead", function() {
-		socket.disconnect(); //In case we didn"t get the disconnect call
-	});
-	socket.on("disconnect", function() {
-		if (!user) return;
-		console.info("Server has disconnected. Creating new game.");
-		socket.disconnect();
-		user.die();
-		dirty = true;
-		paintLoop();
-		running = false;
-		invokeRenderer("disconnect", []);
-	});
-	socket.emit("hello", {
-		name: name,
-		type: 0, //Free-for-all
-		gameid: -1 //Requested game-id, or -1 for anyone
-	}, function(success, msg) {
-		if (success) console.info("Connected to game!");
-		else {
-			console.error("Unable to connect to game: " + msg);
-			running = false;
-		}
-		if (callback) callback(success, msg);
-	});
-}
-
-function changeHeading(newHeading) {
-	if (!user || user.dead) return;
-	if (newHeading === user.currentHeading || ((newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))) {
-		//user.heading = newHeading;
-		if (socket) {
-			socket.emit("frame", {
-				frame: frame,
-				heading: newHeading
-			}, function(success, msg) {
-				if (!success) console.error(msg);
-			});
-		}
-	}
-}
-
-function getUser() {
-	return user;
-}
-
-function getOthers() {
-	var ret = [];
-	for (var p of players) {
-		if (p !== user) ret.push(p);
-	}
-	return ret;
-}
-
-function getPlayers() {
-	return players.slice();
-}
-//Private API
-function addPlayer(player) {
-	if (allPlayers[player.num]) return; //Already added
-	allPlayers[player.num] = players[players.length] = player;
-	invokeRenderer("addPlayer", [player]);
-	return players.length - 1;
-}
-
-function invokeRenderer(name, args) {
-	var renderer = exports.renderer;
-	if (renderer && typeof renderer[name] === "function") renderer[name].apply(exports, args);
-}
-
-function processFrame(data) {
-	if (timeout != undefined) clearTimeout(timeout);
-	if (requesting !== -1 && requesting < data.frame) {
-		frameCache.push(data);
-		return;
-	}
-	if (data.frame - 1 !== frame) {
-		console.error("Frames don\"t match up!");
-		socket.emit("requestFrame"); //Restore data
-		requesting = data.frame;
-		frameCache.push(data);
-		return;
-	}
-	frame++;
-	if (data.newPlayers) {
-		data.newPlayers.forEach(function(p) {
-			if (p.num === user.num) return;
-			var pl = new Player(grid, p);
-			addPlayer(pl);
-			core.initPlayer(grid, pl);
+		$("#start").removeAttr("disabled").click(function(evt) {
+			mimiRequestAnimationFrame(run);
 		});
-	}
-	var found = new Array(players.length);
-	data.moves.forEach(function(val, i) {
-		var player = allPlayers[val.num];
-		if (!player) return;
-		if (val.left) player.die();
-		found[i] = true;
-		player.heading = val.heading;
 	});
-	for (var i = 0; i < players.length; i++) {
-		//Implicitly leaving game
-		if (!found[i]) {
-			var player = players[i];
-			player && player.die();
-		}
-	}
-	update();
-	var locs = {};
-	for (var i = 0; i < players.length; i++) {
-		var p = players[i];
-		locs[p.num] = [p.posX, p.posY, p.waitLag];
-	}
-	/*
-	socket.emit("verify", {
-		frame: frame,
-		locs: locs
-	}, function(frame, success, adviceFix, msg) {
-		if (!success && requesting === -1) {
-			console.error(frame + ": " + msg);
-			if (adviceFix) socket.emit("requestFrame");
-		}
-	}.bind(this, frame));
-	*/
-	dirty = true;
-	mimiRequestAnimationFrame(function() {
-		paintLoop();
+	socket.on("connect_error", function() {
+		error.text("Cannot connect with server. This probably is due to misconfigured proxy server. (Try using a different browser)");
 	});
-	timeout = setTimeout(function() {
-		console.warn("Server has timed-out. Disconnecting.");
-		socket.disconnect();
-	}, 3000);
-}
-
-function paintLoop() {
-	if (!dirty) return;
-	invokeRenderer("paint", []);
-	dirty = false;
-	if (user && user.dead) {
-		if (timeout) clearTimeout(timeout);
-		if (deadFrames === 60) { //One second of frame
-			var before = allowAnimation;
-			allowAnimation = false;
-			update();
-			invokeRenderer("paint", []);
-			allowAnimation = before;
-			user = null;
-			deadFrames = 0;
-			return;
-		}
-		socket.disconnect();
-		deadFrames++;
-		dirty = true;
-		update();
-		mimiRequestAnimationFrame(paintLoop);
-	}
-}
-
-function reset() {
-	user = null;
-	grid.reset();
-	players = [];
-	allPlayers = [];
-	kills = 0;
-	invokeRenderer("reset");
-}
-
-function setUser(player) {
-	user = player;
-	invokeRenderer("setUser", [player]);
-}
-
-function update() {
-	var dead = [];
-	core.updateFrame(grid, players, dead, function addKill(killer, other) {
-		if (players[killer] === user && killer !== other) kills++;
-	});
-	dead.forEach(function(val) {
-		console.log((val.name || "Unnamed") + " is dead");
-		delete allPlayers[val.num];
-		invokeRenderer("removePlayer", [val]);
-	});
-	invokeRenderer("update", [frame]);
-}
-//Export stuff
-var funcs = [connectGame, changeHeading, getOthers, getPlayers, getUser];
-funcs.forEach(function(f) {
-	exports[f.name] = f;
 });
-exports.renderer = null;
-Object.defineProperties(exports, {
-	allowAnimation: {
-		get: function() {
-			return allowAnimation;
-		},
-		set: function(val) {
-			allowAnimation = !!val;
-		},
-		enumerable: true
-	},
-	grid: {
-		get: function() {
-			return grid;
-		},
-		enumerable: true
-	},
-	kills: {
-		get: function() {
-			return kills;
-		},
-		enumerable: true
+//Event listeners
+$(document).keydown(function(e) {
+	var newHeading = -1;
+	switch (e.which) {
+		case 38: newHeading = 0; break; //UP
+		case 87: newHeading = 0; break; //UP (W)
+		case 39: newHeading = 1; break; //RIGHT
+		case 68: newHeading = 1; break; //RIGHT (D)
+		case 40: newHeading = 2; break; //DOWN
+		case 83: newHeading = 2; break; //DOWN (S)
+		case 37: newHeading = 3; break; //LEFT
+		case 65: newHeading = 3; break; //LEFT (A)
+		default: return; //Exit handler for other keys
 	}
+	client.changeHeading(newHeading);
+	//e.preventDefault();
+});
+
+$(document).on("touchmove", function(e) {
+	e.preventDefault(); 
+});
+
+$(document).on("touchstart", function (e1) {
+	var x1 = e1.targetTouches[0].pageX;
+	var y1 = e1.targetTouches[0].pageY;
+	$(document).one("touchend", function (e2) {
+		var x2 = e2.changedTouches[0].pageX;
+		var y2 = e2.changedTouches[0].pageY;
+		var deltaX = x2 - x1;
+		var deltaY = y2 - y1;
+		var newHeading = -1;
+		if (deltaY < 0 && Math.abs(deltaY) > Math.abs(deltaX)) newHeading = 0;
+		else if (deltaX > 0 && Math.abs(deltaY) < deltaX) newHeading = 1;
+		else if (deltaY > 0 && Math.abs(deltaX) < deltaY) newHeading = 2;
+		else if (deltaX < 0 && Math.abs(deltaX) > Math.abs(deltaY)) newHeading = 3;
+		client.changeHeading(newHeading);
+	});
 });

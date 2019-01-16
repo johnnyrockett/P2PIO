@@ -1,8 +1,7 @@
 /* global $ */
 
-var core = require("../game-core");
-var client = require("../client");
-var Rolling = require("./rolling");
+var core = require("./core");
+var client = require("./game-client");
 
 var GRID_SIZE = core.GRID_SIZE;
 var CELL_WIDTH = core.CELL_WIDTH;
@@ -317,6 +316,27 @@ function getBounceOffset(frame) {
 		frame = frame - offsetBounce;
 		var midFrame = BOUNCE_FRAMES[bounceNum] / 2;
 		return (frame >= midFrame) ? (BOUNCE_FRAMES[bounceNum] - frame) * DROP_SPEED : frame * DROP_SPEED;
+	}
+}
+
+function Rolling(value, frames) {
+	var lag = 0;
+	if (!frames) frames = 24;
+	this.value = value;
+	Object.defineProperty(this, "lag", {
+		get: function() {
+			return lag;
+		},
+		enumerable: true
+	});
+	this.update = function() {
+		var delta = this.value - lag;
+		var dir = Math.sign(delta);
+		var speed = Math.abs(delta) / frames;
+		var mag = Math.min(Math.abs(speed), Math.abs(delta));
+
+		lag += mag * dir;
+		return lag;
 	}
 }
 

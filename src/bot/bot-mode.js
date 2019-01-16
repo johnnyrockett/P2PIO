@@ -1,11 +1,6 @@
 if (process.argv.length < 3) {
-	console.log("Usage: node game-client-bot.js <socket-url> [<name>]")
+	console.log("Usage: node bot-mode.js <socket-url> [<name>]")
 	process.exit(1);
-}
-
-var oldlog = console.log;
-console.log = function(msg) {
-	return oldlog(`[${new Date()}] ${msg}`);
 }
 
 //TODO: add a land claiming algo (with coefficient parameters)
@@ -13,8 +8,8 @@ console.log = function(msg) {
 //of kills
 //TODO: genetic gene pooling
 
-var core = require("../game-core");
-var client = require("../client");
+var core = require("../core");
+var client = require("../game-client");
 
 var GRID_SIZE = core.GRID_SIZE;
 var CELL_WIDTH = core.CELL_WIDTH;
@@ -26,7 +21,7 @@ var THRESHOLD = 10;
 var startFrame = -1;
 var endFrame = -1;
 var coeffs = [0.6164220147940495, -2.519369747858328, 0.9198978109542851, -1.2158956330674564, -3.072901620397528, 5, 4];
-var grid, others, user, playerPortion;
+var grid, others, user, playerPortion = {};
 var DIST_TYPES = {
 	land: {
 		check: function(loc) {
@@ -63,6 +58,10 @@ var DIST_TYPES = {
 		}
 	}
 };
+
+function log(msg) {
+	return console.log(`[${new Date()}] ${msg}`);
+}
 
 function generateLandDirections() {
 	function mod(x) {
@@ -188,7 +187,7 @@ function printGrid() {
 			str += chars.get(r, c);
 		}
 	}
-	console.log(str);
+	log(str);
 }
 
 function update(frame) {
@@ -211,7 +210,7 @@ function update(frame) {
 				weight += point;
 				str += distType + ": " + point + ", ";
 			}
-			//console.log(str);
+			//log(str);
 			weights[d] = weight;
 		}
 
@@ -232,7 +231,7 @@ function update(frame) {
 				total++;
 			}
 		}
-		//console.log(weights)
+		//log(weights)
 		//Choose a random direction from the weighted list
 		var choice = Math.random() * total;
 		var d = 0;
@@ -255,9 +254,9 @@ client.renderer = {
 	disconnect: function() {
 		var dt = (endFrame - startFrame);
 		startFrame = -1;
-		console.log("I died... (survived for " + dt + " frames.)");
-		console.log("I killed " + client.kills + " player(s).");
-		console.log("Coefficients: " + coeffs);
+		log("I died... (survived for " + dt + " frames.)");
+		log("I killed " + client.kills + " player(s).");
+		log("Coefficients: " + coeffs);
 
 		var mutation = Math.min(10, Math.pow(2, calcFavorability(params)));
 		for (var i = 0; i < coeffs.length; i++) {

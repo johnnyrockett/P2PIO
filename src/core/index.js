@@ -1,4 +1,4 @@
-var core = require("./game-core");
+var core = require("./core");
 var consts = require("./game-consts");
 
 exports.Color = require("./color");

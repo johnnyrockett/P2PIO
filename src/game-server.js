@@ -1,4 +1,4 @@
-var core = require("./game-core");
+var core = require("./core");
 var GRID_SIZE = core.GRID_SIZE;
 var CELL_WIDTH = core.CELL_WIDTH;
 var MAX_PLAYERS = core.MAX_PLAYERS;
