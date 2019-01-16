@@ -1,10 +1,10 @@
 {
-	"name": "paper-io",
+	"name": "Paper-io",
 	"version": "0.0.1",
 	"description": "An multiplayer-IO type game (cloned from Paper-IO)",
-	"main": "",
+	"main": "server.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"start": "node server.js"
 	},
 	"repository": {
 		"type": "git",

@@ -18,7 +18,11 @@ var mimiRequestAnimationFrame = window && window.document
 	:  function(callback) { window.setTimeout(callback, 1000 / 30) };
 
 function run() {
-	client.connectGame("//" + window.location.hostname + ":8081", $("#name").val(), function(success, msg) {
+	var names = "Alice Bob Carol Dave Eve Francis Grace Hans Isabella Jason Kate Louis Margaret Nathan Olivia Paul Queen Richard Susan Thomas Uma Vivian Winnie Xander Yasmine Zach".split(" ");
+	var prefix = "Angry Baby Crazy Diligent Excited Fat Greedy Hungry Interesting Japanese Kind Little Magic Naïve Old Powerful Quiet Rich Superman THU Undefined Valuable Wifeless Xiangbuchulai Young Zombie".split(" ");
+	var name = $("#name").val() || [prefix[Math.floor(Math.random() * prefix.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
+	$("#name").val(name);
+	client.connectGame("//" + window.location.hostname + ":8081", name, function(success, msg) {
 		if (success) {
 			$("#begin").fadeOut(1000);
 			$("#main-ui").fadeIn(1000);
@@ -70,10 +74,10 @@ $(document).keydown(function(e) {
 		case 83: newHeading = 2; break; //DOWN (S)
 		case 37: newHeading = 3; break; //LEFT
 		case 65: newHeading = 3; break; //LEFT (A)
-		default: return; //exit handler for other keys
+		default: return; //Exit handler for other keys
 	}
 	client.changeHeading(newHeading);
-	e.preventDefault();
+	//e.preventDefault();
 });
 
 $(document).on("touchmove", function(e) {
