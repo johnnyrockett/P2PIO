@@ -1,5 +1,5 @@
 var core = require("./core");
-var consts = require("./game-consts");
+var consts = require("./consts");
 
 exports.Color = require("./color");
 exports.Grid = require("./grid");

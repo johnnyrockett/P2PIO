@@ -1,4 +1,4 @@
-# Blockly.IO
+# Paper.IO
 
 This is a clone of the original Paper-IO released by Voodoo, except for one aspect. This will attempt to implement a multi-player aspect of the game (like a real IO game). Currently this has a playground at this [link](https://thekidofarcrania.github.io/BlocklyIO). It's a demo version of what to come. Hopefully by that time, the necessary server infrastructure could be obtained.
 
@@ -32,6 +32,12 @@ node src/bot/paper-io-bot-mode.js ws://localhost:8081
 sudo npm install -g browserify uglify-es
 browserify client.js | uglifyjs > public/bundle.js
 ```
+
+## TODO
+
+加快渲染速度
+
+优化胜负判定
 
 ## License
 

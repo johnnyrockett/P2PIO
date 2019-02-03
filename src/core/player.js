@@ -1,7 +1,7 @@
 var Stack = require("./stack");
 var Color = require("./color");
-var Grid = require("./grid.js");
-var consts = require("./game-consts.js");
+var Grid = require("./grid");
+var consts = require("./consts");
 
 var GRID_SIZE = consts.GRID_SIZE;
 var CELL_WIDTH = consts.CELL_WIDTH;

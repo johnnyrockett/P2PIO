@@ -51,10 +51,18 @@ canvas {
 }
 #github svg {
 	transition: all 1s;
-	transform-origin: right top;
+	fill: #222;
+	color: #fff;
+	position: absolute;
+	top: 0;
+	right: 0;
+	border: 0;
+	width: 80px;
+	height: 80px;
 }
 #github:hover svg {
-	transform: scale(2);
+	width: 160px;
+	height: 160px;
 }
 .center {
 	vertical-align: middle;

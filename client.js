@@ -4,9 +4,6 @@ var io = require("socket.io-client");
 var client = require("./src/game-client");
 client.allowAnimation = true;
 client.renderer = require("./src/user-mode");
-var core = require("./src/core");
-var GRID_SIZE = core.GRID_SIZE;
-var CELL_WIDTH = core.CELL_WIDTH;
 
 var mimiRequestAnimationFrame = window.requestAnimationFrame
 	|| window.webkitRequestAnimationFrame
@@ -16,11 +13,7 @@ var mimiRequestAnimationFrame = window.requestAnimationFrame
 	|| function(callback) { window.setTimeout(callback, 1000 / 30) };
 
 function run() {
-	var names = "Alice Bob Carol Dave Eve Francis Grace Hans Isabella Jason Kate Louis Margaret Nathan Olivia Paul Queen Richard Susan Thomas Uma Vivian Winnie Xander Yasmine Zach".split(" ");
-	var prefix = "Angry Baby Crazy Diligent Excited Fat Greedy Hungry Interesting Japanese Kind Little Magic Naïve Old Powerful Quiet Rich Superman THU Undefined Valuable Wifeless Xiangbuchulai Young Zombie".split(" ");
-	var name = $("#name").val() || [prefix[Math.floor(Math.random() * prefix.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
-	$("#name").val(name);
-	client.connectGame("//" + window.location.hostname + ":8081", name, function(success, msg) {
+	client.connectGame("//" + window.location.hostname + ":8081", $("#name").val(), function(success, msg) {
 		if (success) {
 			$("#begin").fadeOut(1000);
 			$("#main-ui").fadeIn(1000);

@@ -1,5 +1,5 @@
-var ANIMATE_FRAMES = 24;
-var CELL_WIDTH = 40;
+var consts = require("./consts");
+var CELL_WIDTH = consts.CELL_WIDTH;
 
 //TODO: remove constants
 exports.initPlayer = function(grid, player) {

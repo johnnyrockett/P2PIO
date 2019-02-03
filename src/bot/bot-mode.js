@@ -101,7 +101,7 @@ function foundProto(func) {
 }
 
 function connect() {
-	client.connectGame(process.argv[2], process.argv[3] || "[BOT]", function(success, msg) {
+	client.connectGame(process.argv[2], process.argv[3], function(success, msg) { //|| "[BOT]"
 		if (!success) setTimeout(connect, 1000);
 	});
 }
@@ -254,8 +254,8 @@ client.renderer = {
 	disconnect: function() {
 		var dt = (endFrame - startFrame);
 		startFrame = -1;
-		log("I died... (survived for " + dt + " frames.)");
-		log("I killed " + client.kills + " player(s).");
+		log(`I died... (survived for ${dt} frames.)`);
+		log(`I killed ${client.kills} player(s).`);
 		log("Coefficients: " + coeffs);
 
 		var mutation = Math.min(10, Math.pow(2, calcFavorability(params)));

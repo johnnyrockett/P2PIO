@@ -1,8 +1,6 @@
 var io = require("socket.io-client");
 var core = require("./core");
 var Player = core.Player;
-var GRID_SIZE = core.GRID_SIZE;
-var CELL_WIDTH = core.CELL_WIDTH;
 var running = false;
 var user, socket, frame;
 var players, allPlayers;
@@ -18,7 +16,6 @@ var grid = new core.Grid(core.GRID_SIZE, function(row, col, before, after) {
 });
 
 var mimiRequestAnimationFrame;
-
 try {
 	if (window && window.document) {
 		mimiRequestAnimationFrame = window.requestAnimationFrame
@@ -39,6 +36,9 @@ function connectGame(url, name, callback) {
 	running = true;
 	user = null;
 	deadFrames = 0;
+	var prefixes = core.PREFIXES;
+	var names = core.NAMES;
+	name = name || [prefixes[Math.floor(Math.random() * prefixes.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
 	//Socket connection
 	io.j = [];
 	io.sockets = [];

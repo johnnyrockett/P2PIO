@@ -1,5 +1,5 @@
-var hostname = process.argv[2] || "0.0.0.0";
 var port = parseInt(process.argv[3]) || 8080;
+var hostname = process.argv[2] || "0.0.0.0";
 var finalhandler = require("finalhandler");
 var http = require("http");
 var serveStatic = require("serve-static");

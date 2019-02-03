@@ -2,10 +2,10 @@ var core = require("./core");
 var GRID_SIZE = core.GRID_SIZE;
 var CELL_WIDTH = core.CELL_WIDTH;
 var MAX_PLAYERS = core.MAX_PLAYERS;
-var HUES = [0, 10, 20, 25, 30, 35, 40, 45, 50, 60, 70, 100, 110, 120, 125, 130, 135, 140, 145, 150, 160, 170, 180, 190, 200, 210, 220].map(function(val) {
+var SATS = [192, 150, 100].map(function(val) {
 	return val / 240;
 });
-var SATS = [192, 150, 100].map(function(val) {
+var HUES = [0, 10, 20, 25, 30, 35, 40, 45, 50, 60, 70, 100, 110, 120, 125, 130, 135, 140, 145, 150, 160, 170, 180, 190, 200, 210, 220].map(function(val) {
 	return val / 240;
 });
 
@@ -182,8 +182,8 @@ function Game(id) {
 			data.newPlayers = snews;
 			newPlayers = [];
 		}
-		for (var pl of players) {
-			pl.client.emit("notifyFrame", data);
+		for (var p of players) {
+			p.client.emit("notifyFrame", data);
 		}
 		frame++;
 		pushPlayerLocations();
@@ -193,14 +193,14 @@ function Game(id) {
 	function update() {
 		var dead = [];
 		core.updateFrame(grid, players, dead);
-		for (var pl of dead) {
-			if (!pl.handledDead) {
-				possColors.push(pl.baseColor);
-				pl.handledDead = true;
+		for (var p of dead) {
+			if (!p.handledDead) {
+				possColors.push(p.baseColor);
+				p.handledDead = true;
 			}
-			if (pl.name.indexOf("BOT") == -1) log((pl.name || "Unnamed") + " (" + pl.num + ") died.");
-			pl.client.emit("dead");
-			pl.client.disconnect(true);
+			if (p.name.indexOf("BOT") == -1) log((p.name || "Unnamed") + " (" + p.num + ") died.");
+			p.client.emit("dead");
+			p.client.disconnect(true);
 		}
 	}
 }

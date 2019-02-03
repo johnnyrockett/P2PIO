@@ -8,7 +8,7 @@ var client = require("../game-client");
 
 var GRID_SIZE = core.GRID_SIZE;
 var CELL_WIDTH = core.CELL_WIDTH;
-var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]]
+var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 
 var startFrame = -1;
 var endFrame = -1;
@@ -25,7 +25,7 @@ function mod(x) {
 }
 
 function connect() {
-	client.connectGame(process.argv[2], process.argv[3] || "[PAPER-IO-BOT]", function(success, msg) {
+	client.connectGame(process.argv[2], process.argv[3], function(success, msg) { //|| "[PAPER-IO-BOT]"
 		if (!success) setTimeout(connect, 1000);
 	});
 }
@@ -188,8 +188,8 @@ client.renderer = {
 		var dt = (endFrame - startFrame);
 		startFrame = -1;
 
-		log("I died... (survived for " + dt + " frames.)");
-		log("I killed " + client.kills + " player(s).");
+		log(`I died... (survived for ${dt} frames.)`);
+		log(`I killed ${client.kills} player(s).`);
 		connect();
 	},
 	removePlayer: function(player) {
