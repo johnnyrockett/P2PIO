@@ -20,10 +20,12 @@ After cloning this repository, run the follow commands to install dependencies a
 npm start
 ```
 
+You can configure the game by editing `config.json`. Remember: DO NOT EDIT THE `consts` SETTINGS UNLESS YOU KNOW WHAT YOU ARE DOING.
+
 ## Bots
 
 ```bash
-node src/bot/paper-io-bot-mode.js ws://localhost:8081
+node src/paper-io-bot.js ws://localhost:8081
 ```
 
 ## Build
@@ -35,9 +37,9 @@ browserify client.js | uglifyjs > public/bundle.js
 
 ## Roadmap & TODO List
 
-[ ] 多个游戏房间
-[ ] 加快渲染速度
-[ ] 优化胜负判定
+- [ ] 多个游戏房间
+- [ ] 加快渲染速度
+- [ ] 优化胜负判定
 
 ## License
 
@@ -46,5 +48,4 @@ This is licensed under MIT. As such, please provide due credit and link back to 
 Original Repo:
 
 - Author: theKidOfArcrania
-
 - Link: https://github.com/theKidOfArcrania/BlocklyIO

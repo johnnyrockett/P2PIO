@@ -266,8 +266,7 @@ function update() {
 	invokeRenderer("update", [frame]);
 }
 //Export stuff
-var funcs = [connectGame, changeHeading, getOthers, getPlayers, getUser];
-funcs.forEach(function(f) {
+[connectGame, changeHeading, getOthers, getPlayers, getUser].forEach(function(f) {
 	exports[f.name] = f;
 });
 exports.renderer = null;

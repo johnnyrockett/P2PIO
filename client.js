@@ -4,7 +4,7 @@ var io = require("socket.io-client");
 var client = require("./src/game-client");
 var config = require("./config.json")
 client.allowAnimation = true;
-client.renderer = require("./src/user-mode");
+client.renderer = require("./src/mode/mode-user");
 
 var mimiRequestAnimationFrame = window.requestAnimationFrame
 	|| window.webkitRequestAnimationFrame

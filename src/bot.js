@@ -1,5 +1,5 @@
 if (process.argv.length < 3) {
-	console.log("Usage: node bot-mode.js <socket-url> [<name>]")
+	console.log("Usage: node bot.js <socket-url> [<name>]")
 	process.exit(1);
 }
 
@@ -7,9 +7,9 @@ if (process.argv.length < 3) {
 //TODO: add weight to the max land area and last land area, and also the number of kills
 //TODO: genetic gene pooling
 
-var core = require("../core");
-var client = require("../game-client");
-var consts = require("../../config.json").consts;
+var core = require("./core");
+var client = require("./game-client");
+var consts = require("../config.json").consts;
 
 var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 

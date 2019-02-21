@@ -3,8 +3,6 @@
 	"http_port": 8080,
 	"ws_port": 8081,
 	"bots": [],
-	// DO NOT EDIT THE FOLLOWING SETTINGS
-	// UNLESS YOU KNOW WHAT YOU ARE DOING
 	"consts": {
 		"GRID_SIZE": 80,
 		"CELL_WIDTH": 40,

@@ -1,8 +1,8 @@
 /* global $ */
 
-var core = require("./core");
-var client = require("./game-client");
-var consts = require("../config.json").consts;
+var core = require("../core");
+var client = require("../game-client");
+var consts = require("../../config.json").consts;
 
 var SHADOW_OFFSET = 5;
 var ANIMATE_FRAMES = 24;

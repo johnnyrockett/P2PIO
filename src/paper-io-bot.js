@@ -1,11 +1,11 @@
 if (process.argv.length < 3) {
-	console.log("Usage: node paper-io-bot-mode.js <socket-url> [<name>]")
+	console.log("Usage: node paper-io-bot.js <socket-url> [<name>]")
 	process.exit(1);
 }
 
-var core = require("../core");
-var client = require("../game-client");
-var consts = require("../../config.json").consts;
+var core = require("./core");
+var client = require("./game-client");
+var consts = require("../config.json").consts;
 
 var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 
