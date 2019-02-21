@@ -5,9 +5,8 @@ if (process.argv.length < 3) {
 
 var core = require("../core");
 var client = require("../game-client");
+var consts = require("../../config.json").consts;
 
-var GRID_SIZE = core.GRID_SIZE;
-var CELL_WIDTH = core.CELL_WIDTH;
 var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 
 var startFrame = -1;
@@ -50,9 +49,9 @@ function update(frame) {
 		//the original code (i.e. deobfuscating) and made more efficient in some
 		//areas (and some tweaks), otherwise, the original logic is about the same.
 		var row = user.row, col = user.col, dir = user.currentHeading;
-		var thres = (.05 + .1 * Math.random()) * GRID_SIZE * GRID_SIZE;
+		var thres = (.05 + .1 * Math.random()) * consts.GRID_SIZE * consts.GRID_SIZE;
 
-		if (row < 0 || col < 0 || row >= GRID_SIZE || col >= GRID_SIZE) return;
+		if (row < 0 || col < 0 || row >= consts.GRID_SIZE || col >= consts.GRID_SIZE) return;
 
 		if (grid.get(row, col) === user) {
 			//When we are inside our territory
@@ -66,7 +65,7 @@ function update(frame) {
 					var nr = MOVES[nd][0] * S + row;
 					var nc = MOVES[nd][1] * S + col;
 
-					if (nr < 0 || nc < 0 || nr >= GRID_SIZE || nc >= GRID_SIZE) {
+					if (nr < 0 || nc < 0 || nr >= consts.GRID_SIZE || nc >= consts.GRID_SIZE) {
 						if (S > 1) weights[nd]--;
 						else weights[nd] = -9999;
 					}
@@ -132,7 +131,7 @@ function update(frame) {
 					var nr = MOVES[nd][0] * S + row;
 					var nc = MOVES[nd][1] * S + col;
 
-					if (nr < 0 || nc < 0 || nr >= GRID_SIZE || nc >= GRID_SIZE) {
+					if (nr < 0 || nc < 0 || nr >= consts.GRID_SIZE || nc >= consts.GRID_SIZE) {
 						if (S > 1) weights[nd]--;
 						else weights[nd] = -9999;
 					}

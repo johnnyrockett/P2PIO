@@ -1,6 +1,6 @@
 var io = require("socket.io-client");
 var core = require("./core");
-var Player = core.Player;
+var consts = require("../config.json").consts;
 var running = false;
 var user, socket, frame;
 var players, allPlayers;
@@ -11,7 +11,7 @@ var deadFrames = 0;
 var requesting = -1; //frame that we are requesting at
 var frameCache = []; //Frames after our request
 var allowAnimation = true;
-var grid = new core.Grid(core.GRID_SIZE, function(row, col, before, after) {
+var grid = new core.Grid(consts.GRID_SIZE, function(row, col, before, after) {
 	invokeRenderer("updateGrid", [row, col, before, after]);
 });
 
@@ -36,8 +36,8 @@ function connectGame(url, name, callback) {
 	running = true;
 	user = null;
 	deadFrames = 0;
-	var prefixes = core.PREFIXES;
-	var names = core.NAMES;
+	var prefixes = consts.PREFIXES.split(" ");
+	var names = consts.NAMES.split(" ");
 	name = name || [prefixes[Math.floor(Math.random() * prefixes.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
 	//Socket connection
 	io.j = [];
@@ -58,7 +58,7 @@ function connectGame(url, name, callback) {
 		reset();
 		//Load players.
 		data.players.forEach(function(p) {
-			var pl = new Player(grid, p);
+			var pl = new core.Player(grid, p);
 			addPlayer(pl);
 		});
 		user = allPlayers[data.num];
@@ -170,7 +170,7 @@ function processFrame(data) {
 	if (data.newPlayers) {
 		data.newPlayers.forEach(function(p) {
 			if (p.num === user.num) return;
-			var pl = new Player(grid, p);
+			var pl = new core.Player(grid, p);
 			addPlayer(pl);
 			core.initPlayer(grid, pl);
 		});

@@ -1,7 +1,4 @@
-var consts = require("./consts");
-var CELL_WIDTH = consts.CELL_WIDTH;
-
-//TODO: remove constants
+var consts = require("../../config.json").consts;
 exports.initPlayer = function(grid, player) {
 	for (var dr = -1; dr <= 1; dr++) {
 		for (var dc = -1; dc <= 1; dc++) {
@@ -97,11 +94,11 @@ exports.updateFrame = function(grid, players, dead, notifyKill) {
 };
 
 function squaresIntersect(a, b) {
-	return (a < b) ? (b < a + CELL_WIDTH) : (a < b + CELL_WIDTH);
+	return (a < b) ? (b < a + consts.CELL_WIDTH) : (a < b + consts.CELL_WIDTH);
 }
 
 function area(player) {
-	var xDest = player.col * CELL_WIDTH;
-	var yDest = player.row * CELL_WIDTH;
+	var xDest = player.col * consts.CELL_WIDTH;
+	var yDest = player.row * consts.CELL_WIDTH;
 	return (player.posX === xDest) ? Math.abs(player.posY - yDest) : Math.abs(player.posX - xDest);
 }

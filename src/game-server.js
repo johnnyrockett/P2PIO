@@ -1,7 +1,5 @@
 var core = require("./core");
-var GRID_SIZE = core.GRID_SIZE;
-var CELL_WIDTH = core.CELL_WIDTH;
-var MAX_PLAYERS = core.MAX_PLAYERS;
+var consts = require("../config.json").consts;
 var SATS = [192, 150, 100].map(function(val) {
 	return val / 240;
 });
@@ -35,21 +33,21 @@ function Game(id) {
 	var frameLocs = [];
 	var frame = 0;
 	var filled = 0;
-	var grid = new core.Grid(GRID_SIZE, function(row, col, before, after) {
+	var grid = new core.Grid(consts.GRID_SIZE, function(row, col, before, after) {
 		if (!!after ^ !!before) {
 			if (after) filled++;
 			else filled--;
-			if (filled === GRID_SIZE * GRID_SIZE) log("FULL GAME");
+			if (filled === consts.GRID_SIZE * consts.GRID_SIZE) log("FULL GAME");
 		}
 	});
 	this.id = id;
 	this.addPlayer = function(client, name) {
-		if (players.length >= MAX_PLAYERS) return false;
+		if (players.length >= consts.MAX_PLAYERS) return false;
 		var start = findEmpty(grid);
 		if (!start) return false;
 		var params = {
-			posX: start.col * CELL_WIDTH,
-			posY: start.row * CELL_WIDTH,
+			posX: start.col * consts.CELL_WIDTH,
+			posY: start.row * consts.CELL_WIDTH,
 			currentHeading: Math.floor(Math.random() * 4),
 			name: name,
 			num: nextInd,

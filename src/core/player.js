@@ -1,10 +1,8 @@
 var Stack = require("./stack");
 var Color = require("./color");
 var Grid = require("./grid");
-var consts = require("./consts");
+var consts = require("../../config.json").consts;
 
-var GRID_SIZE = consts.GRID_SIZE;
-var CELL_WIDTH = consts.CELL_WIDTH;
 var NEW_PLAYER_LAG = 60; //Wait for a second at least
 
 function defineGetter(getter) {
@@ -127,7 +125,7 @@ function render2(data, ctx) {
 	for (var r = 0; r < data.tailGrid.length; r++) {
 		if (!data.tailGrid[r]) continue;
 		for (var c = 0; c < data.tailGrid[r].length; c++) {
-			if (data.tailGrid[r][c]) ctx.fillRect(c * CELL_WIDTH, r * CELL_WIDTH, CELL_WIDTH, CELL_WIDTH);
+			if (data.tailGrid[r][c]) ctx.fillRect(c * consts.CELL_WIDTH, r * consts.CELL_WIDTH, consts.CELL_WIDTH, consts.CELL_WIDTH);
 		}
 	}
 }
@@ -171,9 +169,9 @@ function renderCorner(ctx, cornerStart, dir1, dir2) {
 	var b = walk(a, null, dir1, 1);
 
 	var triangle = new Path2D();
-	triangle.moveTo(cornerStart[1] * CELL_WIDTH, cornerStart[0] * CELL_WIDTH);
-	triangle.lineTo(a[1] * CELL_WIDTH, a[0] * CELL_WIDTH);
-	triangle.lineTo(b[1] * CELL_WIDTH, b[0] * CELL_WIDTH);
+	triangle.moveTo(cornerStart[1] * consts.CELL_WIDTH, cornerStart[0] * consts.CELL_WIDTH);
+	triangle.lineTo(a[1] * consts.CELL_WIDTH, a[0] * consts.CELL_WIDTH);
+	triangle.lineTo(b[1] * consts.CELL_WIDTH, b[0] * consts.CELL_WIDTH);
 	triangle.closePath();
 	for (var i = 0; i < 2; i++) {
 		ctx.fill(triangle);
@@ -194,13 +192,13 @@ function walk(from, ret, orient, dist) {
 }
 
 function fillTailRect(ctx, start, end) {
-	var x = start[1] * CELL_WIDTH;
-	var y = start[0] * CELL_WIDTH;
-	var width = (end[1] - start[1]) * CELL_WIDTH;
-	var height = (end[0] - start[0]) * CELL_WIDTH;
+	var x = start[1] * consts.CELL_WIDTH;
+	var y = start[0] * consts.CELL_WIDTH;
+	var width = (end[1] - start[1]) * consts.CELL_WIDTH;
+	var height = (end[0] - start[0]) * consts.CELL_WIDTH;
 
-	if (width === 0) width += CELL_WIDTH;
-	if (height === 0) height += CELL_WIDTH;
+	if (width === 0) width += consts.CELL_WIDTH;
+	if (height === 0) height += consts.CELL_WIDTH;
 
 	if (width < 0) {
 		x += width;
@@ -260,7 +258,7 @@ function floodFill(data, grid, row, col, been) {
 	if (grid.isOutOfBounds(row, col) || been.get(row, col) || onTail(start) || grid.get(row, col) === data.player) return;
 	//Avoid allocating too many resources
 	var coords = [];
-	var filled = new Stack(GRID_SIZE * GRID_SIZE + 1);
+	var filled = new Stack(consts.GRID_SIZE * consts.GRID_SIZE + 1);
 	var surrounded = true;
 
 	coords.push(start);
@@ -370,11 +368,11 @@ function nearestInteger(positive, val) {
 }
 
 function calcRow(data) {
-	return nearestInteger(data.currentHeading === 2 /*DOWN*/, data.posY / CELL_WIDTH);
+	return nearestInteger(data.currentHeading === 2 /*DOWN*/, data.posY / consts.CELL_WIDTH);
 }
 
 function calcCol(data) {
-	return nearestInteger(data.currentHeading === 1 /*RIGHT*/, data.posX / CELL_WIDTH);
+	return nearestInteger(data.currentHeading === 1 /*RIGHT*/, data.posX / consts.CELL_WIDTH);
 }
 
 //Instance methods
@@ -384,24 +382,24 @@ Player.prototype.render = function(ctx, fade) {
 	//Render player.
 	fade = fade || 1;
 	ctx.fillStyle = this.shadowColor.deriveAlpha(fade).rgbString();
-	ctx.fillRect(this.posX, this.posY, CELL_WIDTH, CELL_WIDTH);
+	ctx.fillRect(this.posX, this.posY, consts.CELL_WIDTH, consts.CELL_WIDTH);
 
-	var mid = CELL_WIDTH / 2;
-	var grd = ctx.createRadialGradient(this.posX + mid, this.posY + mid - SHADOW_OFFSET, 1, this.posX + mid, this.posY + mid - SHADOW_OFFSET, CELL_WIDTH);
+	var mid = consts.CELL_WIDTH / 2;
+	var grd = ctx.createRadialGradient(this.posX + mid, this.posY + mid - SHADOW_OFFSET, 1, this.posX + mid, this.posY + mid - SHADOW_OFFSET, consts.CELL_WIDTH);
 	//grd.addColorStop(0, this.baseColor.deriveAlpha(fade).rgbString());
 	//grd.addColorStop(1, new Color(0, 0, 1, fade).rgbString());
 	//ctx.fillStyle = grd;
 	ctx.fillStyle = this.shadowColor.deriveLumination(.2).rgbString();
-	ctx.fillRect(this.posX - 1, this.posY - SHADOW_OFFSET, CELL_WIDTH + 2, CELL_WIDTH);
+	ctx.fillRect(this.posX - 1, this.posY - SHADOW_OFFSET, consts.CELL_WIDTH + 2, consts.CELL_WIDTH);
 
 	//Render name
 	ctx.fillStyle = this.shadowColor.deriveAlpha(fade).rgbString();
 	ctx.textAlign = "center";
 
 	var yoff = -SHADOW_OFFSET * 2;
-	if (this.row === 0) yoff = SHADOW_OFFSET * 2 + CELL_WIDTH;
+	if (this.row === 0) yoff = SHADOW_OFFSET * 2 + consts.CELL_WIDTH;
 	ctx.font = "18px Changa";
-	ctx.fillText(this.name, this.posX + CELL_WIDTH / 2, this.posY + yoff);
+	ctx.fillText(this.name, this.posX + consts.CELL_WIDTH / 2, this.posY + yoff);
 };
 
 function move(data) {
@@ -411,7 +409,7 @@ function move(data) {
 	}
 	//Move to new position.
 	var heading = this.heading;
-	if (this.posX % CELL_WIDTH !== 0 || this.posY % CELL_WIDTH !== 0) heading = data.currentHeading;
+	if (this.posX % consts.CELL_WIDTH !== 0 || this.posY % consts.CELL_WIDTH !== 0) heading = data.currentHeading;
 	else data.currentHeading = heading;
 	switch (heading) {
 		case 0: data.posY -= SPEED; break; //UP
@@ -432,7 +430,7 @@ function move(data) {
 		this.tail.reposition(row, col);
 	}
 	//If we are completely in a new cell (not in our safe zone), we add to the tail.
-	else if (this.posX % CELL_WIDTH === 0 && this.posY % CELL_WIDTH === 0) this.tail.addTail(heading);
+	else if (this.posX % consts.CELL_WIDTH === 0 && this.posY % consts.CELL_WIDTH === 0) this.tail.addTail(heading);
 }
 
 module.exports = Player;

@@ -4,16 +4,14 @@ if (process.argv.length < 3) {
 }
 
 //TODO: add a land claiming algo (with coefficient parameters)
-//TODO: add weight to the max land area and last land area, and also the number
-//of kills
+//TODO: add weight to the max land area and last land area, and also the number of kills
 //TODO: genetic gene pooling
 
 var core = require("../core");
 var client = require("../game-client");
+var consts = require("../../config.json").consts;
 
-var GRID_SIZE = core.GRID_SIZE;
-var CELL_WIDTH = core.CELL_WIDTH;
-var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]]
+var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 
 var AGGRESSIVE = Math.random();
 var THRESHOLD = 10;
@@ -51,7 +49,7 @@ var DIST_TYPES = {
 		}
 	}, edge: {
 		check: function(loc) {
-			return loc.row <= 1 || loc.col <= 1 || loc.row >= GRID_SIZE - 1 || loc.col >= GRID_SIZE - 1
+			return loc.row <= 1 || loc.col <= 1 || loc.row >= consts.GRID_SIZE - 1 || loc.col >= consts.GRID_SIZE - 1
 		},
 		coeff: function() {
 			return coeffs[4];
@@ -124,7 +122,7 @@ function tail(player, loc) {
 }
 
 function traverseGrid(dir) {
-	steps = new Array(GRID_SIZE * GRID_SIZE);
+	steps = new Array(consts.GRID_SIZE * consts.GRID_SIZE);
 	for (var i in steps) {
 		steps[i] = -1;
 	}
@@ -135,8 +133,8 @@ function traverseGrid(dir) {
 	}
 
 	var row = user.row, col = user.col;
-	var minRow = Math.max(0, row - 10), maxRow = Math.min(GRID_SIZE, row + 10);
-	var minCol = Math.max(0, col - 10), maxCol = Math.min(GRID_SIZE, col + 10);
+	var minRow = Math.max(0, row - 10), maxRow = Math.min(consts.GRID_SIZE, row + 10);
+	var minCol = Math.max(0, col - 10), maxCol = Math.min(consts.GRID_SIZE, col + 10);
 
 	var proj = 0;
 	for (var i = 1; i >= -1; i-=2) {
@@ -154,7 +152,7 @@ function traverseGrid(dir) {
 					loc.row += user.row;
 					loc.col += user.col;
 
-					if (loc.row < 0 || loc.row >= GRID_SIZE || loc.col < 0 || loc.col >= GRID_SIZE) continue;
+					if (loc.row < 0 || loc.row >= consts.GRID_SIZE || loc.col < 0 || loc.col >= consts.GRID_SIZE) continue;
 					if (DIST_TYPES[distType].check(loc)) distWeights[distType] += dist;
 				}
 			}
@@ -164,9 +162,9 @@ function traverseGrid(dir) {
 }
 
 function printGrid() {
-	var chars = new core.Grid(GRID_SIZE);
-	for (var r = 0; r < GRID_SIZE; r++) {
-		for (var c = 0; c < GRID_SIZE; c++) {
+	var chars = new core.Grid(consts.GRID_SIZE);
+	for (var r = 0; r < consts.GRID_SIZE; r++) {
+		for (var c = 0; c < consts.GRID_SIZE; c++) {
 			if (tail(user, {row: r, col: c})) chars.set(r, c, "t");
 			else {
 				var owner = grid.get(r, c);
@@ -181,9 +179,9 @@ function printGrid() {
 	chars.set(user.row, user.col, "^>V<"[user.currentHeading]);
 
 	var str = "";
-	for (var r = 0; r < GRID_SIZE; r++) {
+	for (var r = 0; r < consts.GRID_SIZE; r++) {
 		str += "\n";
-		for (var c = 0; c < GRID_SIZE; c++) {
+		for (var c = 0; c < consts.GRID_SIZE; c++) {
 			str += chars.get(r, c);
 		}
 	}
