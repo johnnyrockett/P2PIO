@@ -258,7 +258,7 @@ function floodFill(data, grid, row, col, been) {
 	if (grid.isOutOfBounds(row, col) || been.get(row, col) || onTail(start) || grid.get(row, col) === data.player) return;
 	//Avoid allocating too many resources
 	var coords = [];
-	var filled = new Stack(consts.GRID_SIZE * consts.GRID_SIZE + 1);
+	var filled = new Stack(consts.GRID_COUNT * consts.GRID_COUNT + 1);
 	var surrounded = true;
 
 	coords.push(start);

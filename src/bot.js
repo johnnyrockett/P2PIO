@@ -49,7 +49,7 @@ var DIST_TYPES = {
 		}
 	}, edge: {
 		check: function(loc) {
-			return loc.row <= 1 || loc.col <= 1 || loc.row >= consts.GRID_SIZE - 1 || loc.col >= consts.GRID_SIZE - 1
+			return loc.row <= 1 || loc.col <= 1 || loc.row >= consts.GRID_COUNT - 1 || loc.col >= consts.GRID_COUNT - 1
 		},
 		coeff: function() {
 			return coeffs[4];
@@ -122,7 +122,7 @@ function tail(player, loc) {
 }
 
 function traverseGrid(dir) {
-	steps = new Array(consts.GRID_SIZE * consts.GRID_SIZE);
+	steps = new Array(consts.GRID_COUNT * consts.GRID_COUNT);
 	for (var i in steps) {
 		steps[i] = -1;
 	}
@@ -133,8 +133,8 @@ function traverseGrid(dir) {
 	}
 
 	var row = user.row, col = user.col;
-	var minRow = Math.max(0, row - 10), maxRow = Math.min(consts.GRID_SIZE, row + 10);
-	var minCol = Math.max(0, col - 10), maxCol = Math.min(consts.GRID_SIZE, col + 10);
+	var minRow = Math.max(0, row - 10), maxRow = Math.min(consts.GRID_COUNT, row + 10);
+	var minCol = Math.max(0, col - 10), maxCol = Math.min(consts.GRID_COUNT, col + 10);
 
 	var proj = 0;
 	for (var i = 1; i >= -1; i-=2) {
@@ -152,7 +152,7 @@ function traverseGrid(dir) {
 					loc.row += user.row;
 					loc.col += user.col;
 
-					if (loc.row < 0 || loc.row >= consts.GRID_SIZE || loc.col < 0 || loc.col >= consts.GRID_SIZE) continue;
+					if (loc.row < 0 || loc.row >= consts.GRID_COUNT || loc.col < 0 || loc.col >= consts.GRID_COUNT) continue;
 					if (DIST_TYPES[distType].check(loc)) distWeights[distType] += dist;
 				}
 			}
@@ -162,9 +162,9 @@ function traverseGrid(dir) {
 }
 
 function printGrid() {
-	var chars = new core.Grid(consts.GRID_SIZE);
-	for (var r = 0; r < consts.GRID_SIZE; r++) {
-		for (var c = 0; c < consts.GRID_SIZE; c++) {
+	var chars = new core.Grid(consts.GRID_COUNT);
+	for (var r = 0; r < consts.GRID_COUNT; r++) {
+		for (var c = 0; c < consts.GRID_COUNT; c++) {
 			if (tail(user, {row: r, col: c})) chars.set(r, c, "t");
 			else {
 				var owner = grid.get(r, c);
@@ -179,9 +179,9 @@ function printGrid() {
 	chars.set(user.row, user.col, "^>V<"[user.currentHeading]);
 
 	var str = "";
-	for (var r = 0; r < consts.GRID_SIZE; r++) {
+	for (var r = 0; r < consts.GRID_COUNT; r++) {
 		str += "\n";
-		for (var c = 0; c < consts.GRID_SIZE; c++) {
+		for (var c = 0; c < consts.GRID_COUNT; c++) {
 			str += chars.get(r, c);
 		}
 	}

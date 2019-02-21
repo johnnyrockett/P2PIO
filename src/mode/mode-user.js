@@ -13,7 +13,8 @@ var MIN_BAR_WIDTH = 65;
 var BAR_HEIGHT = SHADOW_OFFSET + consts.CELL_WIDTH;
 var BAR_WIDTH = 400;
 
-var canvas, canvasWidth, canvasHeight, gameWidth, gameHeight, ctx, offctx, offscreenCanvas;
+var canvas, ctx, offscreenCanvas, offctx,
+	canvasWidth, canvasHeight, gameWidth, gameHeight;
 
 $(function() {
 	canvas = $("#main-ui")[0];
@@ -42,7 +43,7 @@ function updateSize() {
 }
 
 function reset() {
-	animateGrid = new core.Grid(consts.GRID_SIZE);
+	animateGrid = new core.Grid(consts.GRID_COUNT);
 	playerPortion = [];
 	portionsRolling = [];
 	barProportionRolling = [];
@@ -58,7 +59,7 @@ reset();
 //Paint methods
 function paintGridBorder(ctx) {
 	ctx.fillStyle = "lightgray";
-	var gridWidth = consts.CELL_WIDTH * consts.GRID_SIZE;
+	var gridWidth = consts.CELL_WIDTH * consts.GRID_COUNT;
 
 	ctx.fillRect(-consts.BORDER_WIDTH, 0, consts.BORDER_WIDTH, gridWidth);
 	ctx.fillRect(-consts.BORDER_WIDTH, -consts.BORDER_WIDTH, gridWidth + consts.BORDER_WIDTH * 2, consts.BORDER_WIDTH);
@@ -69,7 +70,7 @@ function paintGridBorder(ctx) {
 function paintGrid(ctx) {
 	//Paint background
 	ctx.fillStyle = "rgb(211, 225, 237)";
-	ctx.fillRect(0, 0, consts.CELL_WIDTH * consts.GRID_SIZE, consts.CELL_WIDTH * consts.GRID_SIZE);
+	ctx.fillRect(0, 0, consts.CELL_WIDTH * consts.GRID_COUNT, consts.CELL_WIDTH * consts.GRID_COUNT);
 	paintGridBorder(ctx);
 
 	//paintGridLines(ctx);
@@ -86,7 +87,7 @@ function paintGrid(ctx) {
 		for (var c = minCol; c < maxCol; c++) {
 			var p = grid.get(r, c);
 			var x = c * consts.CELL_WIDTH, y = r * consts.CELL_WIDTH, baseColor, shadowColor;
-				var animateSpec = animateGrid.get(r, c);
+			var animateSpec = animateGrid.get(r, c);
 			if (client.allowAnimation && animateSpec) {
 				if (animateSpec.before) { //fading animation
 					var frac = (animateSpec.frame / ANIMATE_FRAMES);
@@ -101,11 +102,10 @@ function paintGrid(ctx) {
 				shadowColor = p.shadowColor;
 			}
 			else continue; //No animation nor is this player owned
-				var hasBottom = !grid.isOutOfBounds(r + 1, c);
+			var hasBottom = !grid.isOutOfBounds(r + 1, c);
 			var bottomAnimate = hasBottom && animateGrid.get(r + 1, c);
 			var totalStatic = !bottomAnimate && !animateSpec;
-			var bottomEmpty = totalStatic ? (hasBottom && !grid.get(r + 1, c)) :
-				(!bottomAnimate || (bottomAnimate.after && bottomAnimate.before));
+			var bottomEmpty = totalStatic ? (hasBottom && !grid.get(r + 1, c)) : (!bottomAnimate || (bottomAnimate.after && bottomAnimate.before));
 			if (hasBottom && ((!!bottomAnimate ^ !!animateSpec) || bottomEmpty)) {
 				ctx.fillStyle = shadowColor.rgbString();
 				ctx.fillRect(x, y + consts.CELL_WIDTH, consts.CELL_WIDTH + 1, SHADOW_OFFSET);
@@ -225,7 +225,7 @@ function paintUIBar(ctx) {
 }
 
 function paint(ctx) {
-	ctx.fillStyle = "#e2ebf3";	//"whitesmoke";
+	ctx.fillStyle = "#e2ebf3"; //"whitesmoke";
 	ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
 	//Move grid to viewport as said with the offsets, below the stats
@@ -281,7 +281,7 @@ function update() {
 	//Calculate player portions
 	client.getPlayers().forEach(function(player) {
 		var roll = portionsRolling[player.num];
-		roll.value = playerPortion[player.num] / consts.GRID_SIZE / consts.GRID_SIZE;
+		roll.value = playerPortion[player.num] / consts.GRID_COUNT / consts.GRID_COUNT;
 		roll.update();
 	});
 
@@ -340,7 +340,7 @@ function Rolling(value, frames) {
 module.exports = exports = {
 	addPlayer: function(player) {
 		playerPortion[player.num] = 0;
-		portionsRolling[player.num] = new Rolling(9 / consts.GRID_SIZE / consts.GRID_SIZE, ANIMATE_FRAMES);
+		portionsRolling[player.num] = new Rolling(9 / consts.GRID_COUNT / consts.GRID_COUNT, ANIMATE_FRAMES);
 		barProportionRolling[player.num] = new Rolling(0, ANIMATE_FRAMES);
 	},
 	disconnect: function() {

@@ -33,11 +33,11 @@ function Game(id) {
 	var frameLocs = [];
 	var frame = 0;
 	var filled = 0;
-	var grid = new core.Grid(consts.GRID_SIZE, function(row, col, before, after) {
+	var grid = new core.Grid(consts.GRID_COUNT, function(row, col, before, after) {
 		if (!!after ^ !!before) {
 			if (after) filled++;
 			else filled--;
-			if (filled === consts.GRID_SIZE * consts.GRID_SIZE) log("FULL GAME");
+			if (filled === consts.GRID_COUNT * consts.GRID_COUNT) log("FULL GAME");
 		}
 	});
 	this.id = id;

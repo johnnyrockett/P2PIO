@@ -11,7 +11,7 @@ var deadFrames = 0;
 var requesting = -1; //frame that we are requesting at
 var frameCache = []; //Frames after our request
 var allowAnimation = true;
-var grid = new core.Grid(consts.GRID_SIZE, function(row, col, before, after) {
+var grid = new core.Grid(consts.GRID_COUNT, function(row, col, before, after) {
 	invokeRenderer("updateGrid", [row, col, before, after]);
 });
 

@@ -20,7 +20,7 @@ After cloning this repository, run the follow commands to install dependencies a
 npm start
 ```
 
-You can configure the game by editing `config.json`. Remember: DO NOT EDIT THE `consts` SETTINGS UNLESS YOU KNOW WHAT YOU ARE DOING.
+You can configure the game by editing `config.json`. WARNING: DO NOT EDIT THE `consts` SETTINGS UNLESS YOU KNOW WHAT YOU ARE DOING.
 
 ## Bots
 
