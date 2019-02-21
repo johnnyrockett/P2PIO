@@ -15,14 +15,14 @@ if (!(config.ws_port >= 0 && config.ws_port < 65536 && config.ws_port % 1 === 0)
 const finalhandler = require("finalhandler"),
 	http = require("http"),
 	serveStatic = require("serve-static");
-// Serve up public/ folder
+//Serve up public/ folder
 var serve = serveStatic("public/", {
 	"setHeaders": function(res, path) {
 		res.setHeader("Cache-Control", "public, max-age=0");
 	}
 });
 
-// Create server
+//Create server
 try {
 	http.createServer(function onRequest(req, res) {
 		serve(req, res, finalhandler(req, res));

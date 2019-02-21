@@ -24,7 +24,7 @@ function mod(x) {
 }
 
 function connect() {
-	client.connectGame(process.argv[2], process.argv[3], function(success, msg) { //|| "[PAPER-IO-BOT]"
+	client.connectGame(process.argv[2], process.argv[3] || "[BOT]", function(success, msg) {
 		if (!success) setTimeout(connect, 1000);
 	});
 }

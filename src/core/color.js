@@ -68,7 +68,7 @@ Color.prototype.rgbString = function() {
 //https://stackoverflow.com/a/9493060/7344257
 function hslToRgb(h, s, l) {
 	var r, g, b;
-	if (s == 0) r = g = b = l; // achromatic
+	if (s == 0) r = g = b = l; //Achromatic
 	else {
 		var hue2rgb = function hue2rgb(p, q, t) {
 			if (t < 0) t += 1;

@@ -8,7 +8,7 @@ var kills;
 var timeout = undefined;
 var dirty = false;
 var deadFrames = 0;
-var requesting = -1; //frame that we are requesting at
+var requesting = -1; //Frame that we are requesting at
 var frameCache = []; //Frames after our request
 var allowAnimation = true;
 var grid = new core.Grid(consts.GRID_COUNT, function(row, col, before, after) {
@@ -52,11 +52,11 @@ function connectGame(url, name, callback) {
 	});
 	socket.on("game", function(data) {
 		if (timeout != undefined) clearTimeout(timeout);
-		//Initialize game.
+		//Initialize game
 		//TODO: display data.gameid --- game id #
 		frame = data.frame;
 		reset();
-		//Load players.
+		//Load players
 		data.players.forEach(function(p) {
 			var pl = new core.Player(grid, p);
 			addPlayer(pl);
@@ -64,7 +64,7 @@ function connectGame(url, name, callback) {
 		user = allPlayers[data.num];
 		if (!user) throw new Error();
 		setUser(user);
-		//Load grid.
+		//Load grid
 		var gridData = new Uint8Array(data.grid);
 		for (var r = 0; r < grid.size; r++) {
 			for (var c = 0; c < grid.size; c++) {
@@ -75,7 +75,7 @@ function connectGame(url, name, callback) {
 		invokeRenderer("paint", []);
 		frame = data.frame;
 		if (requesting !== -1) {
-			//Update those cache frames after we updated game.
+			//Update those cache frames after we updated game
 			var minFrame = requesting;
 			requesting = -1;
 			while (frameCache.length > frame - minFrame) processFrame(frameCache[frame - minFrame]);

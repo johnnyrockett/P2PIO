@@ -19,7 +19,7 @@ function Game(id) {
 			possColors[i++] = new core.Color(HUES[h], SATS[s], .5, 1);
 		}
 	}
-	//Shuffle the colors.
+	//Shuffle the colors
 	for (var i = 0; i < possColors.length * 50; i++) {
 		var a = Math.floor(Math.random() * possColors.length);
 		var b = Math.floor(Math.random() * possColors.length);
@@ -63,7 +63,7 @@ function Game(id) {
 		if (p.name.indexOf("BOT") == -1) log((p.name || "Unnamed") + " (" + p.num + ") joined.");
 		client.on("requestFrame", function() {
 			if (p.frame === frame) return;
-			p.frame = frame; //Limit number of requests per frame. (One per frame);
+			p.frame = frame; //Limit number of requests per frame (One per frame)
 			var splayers = players.map(function(val) {
 				return val.serialData();
 			});
@@ -75,7 +75,7 @@ function Game(id) {
 				"grid": gridSerialData(grid, players)
 			});
 		});
-		//Verifies that this client has executed this frame properly.
+		//Verifies that this client has executed this frame properly
 		client.on("verify", function(data, resp) {
 			if (typeof resp !== "function") return;
 			if (!data.frame) resp(false, false, "No frame supplied");
@@ -104,7 +104,7 @@ function Game(id) {
 			}
 		});
 		client.on("disconnect", function() {
-			p.die(); //Die immediately if not already.
+			p.die(); //Die immediately if not already
 			p.disconnected = true;
 			if (p.name.indexOf("BOT") == -1) log((p.name || "Unnamed") + " (" + p.num + ") left.");
 		});
@@ -117,7 +117,7 @@ function Game(id) {
 			locs[p.num] = [p.posX, p.posY, p.waitLag];
 		}
 		locs.frame = frame;
-		if (frameLocs.length >= 300) frameLocs.shift(); //Give it 5 seconds of lag.
+		if (frameLocs.length >= 300) frameLocs.shift(); //Give it 5 seconds of lag
 		frameLocs.push(locs);
 	}
 
@@ -147,7 +147,7 @@ function Game(id) {
 	}
 
 	function tick() {
-		//TODO: notify those players that this server automatically drops out.
+		//TODO: notify those players that this server automatically drops out
 		var splayers = players.map(function(val) {
 			return val.serialData();
 		});
@@ -163,7 +163,7 @@ function Game(id) {
 			return val.serialData();
 		});
 		var moves = players.map(function(val) {
-			//Account for race condition (when heading is set after emitting frames, and before updating).
+			//Account for race condition (when heading is set after emitting frames, and before updating)
 			val.heading = val.tmpHeading;
 			return {
 				num: val.num,

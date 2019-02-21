@@ -119,18 +119,6 @@ function reposition(data, row, col) {
 	}
 }
 
-/*
-function render2(data, ctx) {
-	ctx.fillStyle = data.player.tailColor.rgbString();
-	for (var r = 0; r < data.tailGrid.length; r++) {
-		if (!data.tailGrid[r]) continue;
-		for (var c = 0; c < data.tailGrid[r].length; c++) {
-			if (data.tailGrid[r][c]) ctx.fillRect(c * consts.CELL_WIDTH, r * consts.CELL_WIDTH, consts.CELL_WIDTH, consts.CELL_WIDTH);
-		}
-	}
-}
-*/
-
 //Helper methods
 function renderTail(data, ctx) {
 	if (data.tail.length === 0) return;
@@ -377,9 +365,9 @@ function calcCol(data) {
 
 //Instance methods
 Player.prototype.render = function(ctx, fade) {
-	//Render tail.
+	//Render tail
 	this.tail.renderTail(ctx);
-	//Render player.
+	//Render player
 	fade = fade || 1;
 	ctx.fillStyle = this.shadowColor.deriveAlpha(fade).rgbString();
 	ctx.fillRect(this.posX, this.posY, consts.CELL_WIDTH, consts.CELL_WIDTH);
@@ -407,7 +395,7 @@ function move(data) {
 		data.waitLag++;
 		return;
 	}
-	//Move to new position.
+	//Move to new position
 	var heading = this.heading;
 	if (this.posX % consts.CELL_WIDTH !== 0 || this.posY % consts.CELL_WIDTH !== 0) heading = data.currentHeading;
 	else data.currentHeading = heading;
@@ -417,19 +405,19 @@ function move(data) {
 		case 2: data.posY += SPEED; break; //DOWN
 		case 3: data.posX -= SPEED; break; //LEFT
 	}
-	//Check for out of bounds.
+	//Check for out of bounds
 	var row = this.row, col = this.col;
 	if (data.grid.isOutOfBounds(row, col)) {
 		data.dead = true;
 		return;
 	}
-	//Update tail position.
+	//Update tail position
 	if (data.grid.get(row, col) === this) {
 		//Safe zone!
 		this.tail.fillTail();
 		this.tail.reposition(row, col);
 	}
-	//If we are completely in a new cell (not in our safe zone), we add to the tail.
+	//If we are completely in a new cell (not in our safe zone), we add to the tail
 	else if (this.posX % consts.CELL_WIDTH === 0 && this.posY % consts.CELL_WIDTH === 0) this.tail.addTail(heading);
 }
 
