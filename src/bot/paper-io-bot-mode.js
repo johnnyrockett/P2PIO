@@ -190,7 +190,7 @@ client.renderer = {
 
 		log(`I died... (survived for ${dt} frames.)`);
 		log(`I killed ${client.kills} player(s).`);
-		connect();
+		setTimeout(connect, 5000);
 	},
 	removePlayer: function(player) {
 		delete playerPortion[player.num];

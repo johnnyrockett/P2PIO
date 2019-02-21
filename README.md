@@ -33,11 +33,11 @@ sudo npm install -g browserify uglify-es
 browserify client.js | uglifyjs > public/bundle.js
 ```
 
-## TODO
+## Roadmap & TODO List
 
-加快渲染速度
-
-优化胜负判定
+[ ] 多个游戏房间
+[ ] 加快渲染速度
+[ ] 优化胜负判定
 
 ## License
 

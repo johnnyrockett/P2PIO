@@ -2,6 +2,7 @@
 
 var io = require("socket.io-client");
 var client = require("./src/game-client");
+var config = require("./config.json")
 client.allowAnimation = true;
 client.renderer = require("./src/user-mode");
 
@@ -13,17 +14,17 @@ var mimiRequestAnimationFrame = window.requestAnimationFrame
 	|| function(callback) { window.setTimeout(callback, 1000 / 30) };
 
 function run() {
-	client.connectGame("//" + window.location.hostname + ":8081", $("#name").val(), function(success, msg) {
+	client.connectGame("//" + window.location.hostname + ":" + config.ws_port, $("#name").val(), function(success, msg) {
 		if (success) {
 			$("#begin").fadeOut(1000);
 			$("#main-ui").fadeIn(1000);
 		}
 		else {
-			var error = $("#error");
-			error.text(msg);
+			$("#error").text(msg);
 		}
 	});
 }
+
 $(function() {
 	var error = $("#error");
 	if (!window.WebSocket) {
@@ -31,7 +32,7 @@ $(function() {
 		return;
 	}
 	error.text("Loading... Please wait"); //TODO: show loading screen
-	var socket = io("//" + window.location.hostname + ":8081", {
+	var socket = io("//" + window.location.hostname + ":" + config.ws_port, {
 		forceNew: true,
 		upgrade: false,
 		transports: ["websocket"]
