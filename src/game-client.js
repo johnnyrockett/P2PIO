@@ -87,9 +87,9 @@ function connectGame(url, name, callback, flag) {
 		socket.disconnect(); //In case we didn"t get the disconnect call
 	});
 	socket.on("disconnect", function() {
-		if (!user) return;
 		console.info("Server has disconnected. Creating new game.");
 		socket.disconnect();
+		if (!user) return;
 		user.die();
 		dirty = true;
 		paintLoop();
@@ -130,6 +130,10 @@ function getUser() {
 	return user;
 }
 
+function getPlayers() {
+	return players.slice();
+}
+
 function getOthers() {
 	var ret = [];
 	for (var p of players) {
@@ -138,9 +142,11 @@ function getOthers() {
 	return ret;
 }
 
-function getPlayers() {
-	return players.slice();
+function disconnect() {
+	socket.disconnect();
+	running = false;
 }
+
 //Private API
 function addPlayer(player) {
 	if (allPlayers[player.num]) return; //Already added
@@ -256,7 +262,7 @@ function update() {
 	invokeRenderer("update", [frame]);
 }
 //Export stuff
-[connectGame, changeHeading, getOthers, getPlayers, getUser].forEach(function(f) {
+[connectGame, changeHeading, getUser, getPlayers, getOthers, disconnect].forEach(function(f) {
 	exports[f.name] = f;
 });
 Object.defineProperties(exports, {

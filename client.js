@@ -64,7 +64,7 @@ $(document).keydown(function(e) {
 		default: return; //Exit handler for other keys
 	}
 	client.changeHeading(newHeading);
-	e.preventDefault();
+	//e.preventDefault();
 });
 
 $(document).on("touchmove", function(e) {
@@ -89,6 +89,11 @@ $(document).on("touchstart", function (e1) {
 });
 
 $(".menu").on("click", function() {
+	client.disconnect();
 	$("#main-ui, #wasted").fadeOut(1000);
 	$("#begin").fadeIn(1000);
+});
+
+$(".toggle").on("click", function() {
+	$("#settings").slideToggle();
 });
