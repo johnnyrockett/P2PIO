@@ -1,32 +1,8 @@
 var core = require("./core");
 var consts = require("../config.json").consts;
-var SATS = [192, 150, 100].map(function(val) {
-	return val / 240;
-});
-var HUES = [0, 10, 20, 25, 30, 35, 40, 45, 50, 60, 70, 100, 110, 120, 125, 130, 135, 140, 145, 150, 160, 170, 180, 190, 200, 210, 220].map(function(val) {
-	return val / 240;
-});
-
-function log(msg) {
-	console.log(`[${new Date()}] ${msg}`);
-}
 
 function Game(id) {
-	var possColors = new Array(SATS.length * HUES.length);
-	i = 0;
-	for (var s = 0; s < SATS.length; s++) {
-		for (var h = 0; h < HUES.length; h++) {
-			possColors[i++] = new core.Color(HUES[h], SATS[s], .5, 1);
-		}
-	}
-	//Shuffle the colors
-	for (var i = 0; i < possColors.length * 50; i++) {
-		var a = Math.floor(Math.random() * possColors.length);
-		var b = Math.floor(Math.random() * possColors.length);
-		var tmp = possColors[a];
-		possColors[a] = possColors[b];
-		possColors[b] = tmp;
-	}
+	var possColors = core.Color.possColors();
 	var nextInd = 0;
 	var players = [];
 	var gods = [];
@@ -38,7 +14,7 @@ function Game(id) {
 		if (!!after ^ !!before) {
 			if (after) filled++;
 			else filled--;
-			if (filled === consts.GRID_COUNT * consts.GRID_COUNT) log("FULL GAME");
+			if (filled === consts.GRID_COUNT * consts.GRID_COUNT) console.log(`[${new Date()}] FULL GAME`);
 		}
 	});
 	this.id = id;
@@ -61,7 +37,7 @@ function Game(id) {
 		newPlayers.push(p);
 		nextInd++;
 		core.initPlayer(grid, p);
-		if (p.name.indexOf("BOT") == -1) log((p.name || "Unnamed") + " (" + p.num + ") joined.");
+		if (p.name.indexOf("[BOT]") == -1) console.log(`[${new Date()}] ${p.name || "Unnamed"}  (${p.num}) joined.`);
 		client.on("requestFrame", function() {
 			if (p.frame === frame) return;
 			p.frame = frame; //Limit number of requests per frame (One per frame)
@@ -107,7 +83,7 @@ function Game(id) {
 		client.on("disconnect", function() {
 			p.die(); //Die immediately if not already
 			p.disconnected = true;
-			if (p.name.indexOf("BOT") == -1) log((p.name || "Unnamed") + " (" + p.num + ") left.");
+			if (p.name.indexOf("[BOT]") == -1) console.log(`[${new Date()}] ${p.name || "Unnamed"}  (${p.num}) left.`);
 		});
 		return true;
 	};
@@ -230,7 +206,7 @@ function Game(id) {
 				possColors.push(p.baseColor);
 				p.handledDead = true;
 			}
-			if (p.name.indexOf("BOT") == -1) log((p.name || "Unnamed") + " (" + p.num + ") died.");
+			if (p.name.indexOf("[BOT]") == -1) console.log(`${p.name || "Unnamed"} (${p.num}) died.`);
 			p.client.emit("dead");
 			p.client.disconnect(true);
 		}

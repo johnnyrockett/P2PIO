@@ -21,7 +21,6 @@ $(function() {
 	ctx = canvas.getContext("2d");
 	offscreenCanvas = document.createElement("canvas");
 	offctx = offscreenCanvas.getContext("2d");
-	canvas.style.marginTop = 10;
 	updateSize();
 });
 
@@ -34,8 +33,8 @@ function updateSize() {
 		gameWidth = canvasWidth = offscreenCanvas.width = canvas.width = window.innerWidth;
 		changed = true;
 	}
-	if (canvasHeight != window.innerHeight - 20) {
-		canvasHeight = offscreenCanvas.height = canvas.height = window.innerHeight - 20;
+	if (canvasHeight != window.innerHeight) {
+		canvasHeight = offscreenCanvas.height = canvas.height = window.innerHeight;
 		gameHeight = canvasHeight - BAR_HEIGHT;
 		changed = true;
 	}
@@ -73,7 +72,6 @@ function paintGrid(ctx) {
 	ctx.fillRect(0, 0, consts.CELL_WIDTH * consts.GRID_COUNT, consts.CELL_WIDTH * consts.GRID_COUNT);
 	paintGridBorder(ctx);
 
-	//paintGridLines(ctx);
 	//Get viewing limits
 	var offsetX = (offset[0] - consts.BORDER_WIDTH);
 	var offsetY = (offset[1] - consts.BORDER_WIDTH);
@@ -82,7 +80,7 @@ function paintGrid(ctx) {
 	var maxRow = Math.min(Math.ceil((offsetY + gameHeight / zoom) / consts.CELL_WIDTH), grid.size);
 	var maxCol = Math.min(Math.ceil((offsetX + gameWidth / zoom) / consts.CELL_WIDTH), grid.size);
 
-	//Paint occupied areas. (and fading ones)
+	//Paint occupied areas (and fading ones)
 	for (var r = minRow; r < maxRow; r++) {
 		for (var c = minCol; c < maxCol; c++) {
 			var p = grid.get(r, c);
@@ -184,7 +182,7 @@ function paintUIBar(ctx) {
 	});
 
 	var rank = sorted.findIndex(function(val) {
-		return val.player === user
+		return val.player === user;
 	});
 	ctx.fillText("Rank: " + (rank === -1 ? "--" : rank + 1) + " of " + sorted.length,
 	ctx.measureText(killsText).width + killsOffset + 20, consts.CELL_WIDTH - 5);
@@ -253,7 +251,6 @@ function paint(ctx) {
 	if ((!user || user.dead) && !showedDead) {
 		showedDead = true;
 		console.log("You died!");
-		//return;
 	}
 }
 

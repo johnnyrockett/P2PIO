@@ -21,7 +21,6 @@ $(function() {
 	ctx = canvas.getContext("2d");
 	offscreenCanvas = document.createElement("canvas");
 	offctx = offscreenCanvas.getContext("2d");
-	canvas.style.marginTop = 10;
 	updateSize();
 });
 
@@ -34,9 +33,8 @@ function updateSize() {
 		gameWidth = canvasWidth = offscreenCanvas.width = canvas.width = window.innerWidth;
 		changed = true;
 	}
-	if (canvasHeight != window.innerHeight - 20) {
-		canvasHeight = offscreenCanvas.height = canvas.height = window.innerHeight - 20;
-		gameHeight = canvasHeight - BAR_HEIGHT;
+	if (canvasHeight != window.innerHeight) {
+		gameHeight = canvasHeight = offscreenCanvas.height = canvas.height = window.innerHeight;
 		changed = true;
 	}
 	if (changed && user) centerOnPlayer(user, offset);
@@ -50,7 +48,7 @@ function reset() {
 	animateTo = [0, 0];
 	offset = [0, 0];
 	user = null;
-	zoom = 0.2;
+	zoom = (Math.min(canvasWidth, canvasHeight) - consts.BORDER_WIDTH) / (consts.CELL_WIDTH * consts.GRID_COUNT);
 	showedDead = false;
 }
 
@@ -73,7 +71,6 @@ function paintGrid(ctx) {
 	ctx.fillRect(0, 0, consts.CELL_WIDTH * consts.GRID_COUNT, consts.CELL_WIDTH * consts.GRID_COUNT);
 	paintGridBorder(ctx);
 
-	//paintGridLines(ctx);
 	//Get viewing limits
 	var offsetX = (offset[0] - consts.BORDER_WIDTH);
 	var offsetY = (offset[1] - consts.BORDER_WIDTH);
@@ -82,7 +79,7 @@ function paintGrid(ctx) {
 	var maxRow = Math.min(Math.ceil((offsetY + gameHeight / zoom) / consts.CELL_WIDTH), grid.size);
 	var maxCol = Math.min(Math.ceil((offsetX + gameWidth / zoom) / consts.CELL_WIDTH), grid.size);
 
-	//Paint occupied areas. (and fading ones)
+	//Paint occupied areas (and fading ones)
 	for (var r = minRow; r < maxRow; r++) {
 		for (var c = minCol; c < maxCol; c++) {
 			var p = grid.get(r, c);
@@ -142,37 +139,8 @@ function paintGrid(ctx) {
 }
 
 function paintUIBar(ctx) {
-	//UI Bar background
-	ctx.fillStyle = "#24422c";
-	ctx.fillRect(0, 0, canvasWidth, BAR_HEIGHT);
-
-	var barOffset;
-	ctx.fillStyle = "white";
-	ctx.font = "24px Changa";
-	barOffset = (user && user.name) ? (ctx.measureText(user.name).width + 20) : 0;
-	ctx.fillText(user ? user.name : "", 5, consts.CELL_WIDTH - 5);
-
-	//Draw filled bar
-	ctx.fillStyle = "rgba(180, 180, 180, .3)";
-	ctx.fillRect(barOffset, 0, BAR_WIDTH, BAR_HEIGHT);
-
-	var userPortions = 0;
-	var barSize = Math.ceil((BAR_WIDTH - MIN_BAR_WIDTH) * userPortions + MIN_BAR_WIDTH);
-	ctx.fillStyle = user ? user.baseColor.rgbString() : "";
-	ctx.fillRect(barOffset, 0, barSize, consts.CELL_WIDTH);
-	ctx.fillStyle = user ? user.shadowColor.rgbString() : "";
-	ctx.fillRect(barOffset, consts.CELL_WIDTH, barSize, SHADOW_OFFSET);
-
-	//TODO: dont reset kill count and zoom when we request frames.
-	//Percentage
 	ctx.fillStyle = "white";
 	ctx.font = "18px Changa";
-	ctx.fillText((userPortions * 100).toFixed(3) + "%", 5 + barOffset, consts.CELL_WIDTH - 5);
-
-	//Number of kills
-	var killsText = "Kills: " + client.kills;
-	var killsOffset = 20 + BAR_WIDTH + barOffset;
-	ctx.fillText(killsText, killsOffset, consts.CELL_WIDTH - 5);
 
 	//Calcuate rank
 	var sorted = [];
@@ -182,12 +150,6 @@ function paintUIBar(ctx) {
 	sorted.sort(function(a, b) {
 		return (a.portion === b.portion) ? a.player.num - b.player.num : b.portion - a.portion;
 	});
-
-	var rank = sorted.findIndex(function(val) {
-		return val.player === user
-	});
-	ctx.fillText("Rank: " + (rank === -1 ? "--" : rank + 1) + " of " + sorted.length,
-	ctx.measureText(killsText).width + killsOffset + 20, consts.CELL_WIDTH - 5);
 
 	//Rolling the leaderboard bars
 	if (sorted.length > 0) {
@@ -208,7 +170,7 @@ function paintUIBar(ctx) {
 		var nameWidth = ctx.measureText(name).width;
 		barSize = Math.ceil((BAR_WIDTH - MIN_BAR_WIDTH) * portion + MIN_BAR_WIDTH);
 		var barX = canvasWidth - barSize;
-		var barY = BAR_HEIGHT * (i + 1);
+		var barY = BAR_HEIGHT * i;
 		var offset = i == 0 ? 10 : 0;
 		ctx.fillStyle = "rgba(10, 10, 10, .3)";
 		ctx.fillRect(barX - 10, barY + 10 - offset, barSize + 10, BAR_HEIGHT + offset);
@@ -230,14 +192,14 @@ function paint(ctx) {
 
 	//Move grid to viewport as said with the offsets, below the stats
 	ctx.save();
-	ctx.translate(0, BAR_HEIGHT);
+	//ctx.translate(0, BAR_HEIGHT);
 	ctx.beginPath();
 	ctx.rect(0, 0, gameWidth, gameHeight);
 	ctx.clip();
 
 	//Zoom in/out based on player stats
 	ctx.scale(zoom, zoom);
-	ctx.translate(-offset[0] + consts.BORDER_WIDTH, -offset[1] + consts.BORDER_WIDTH);
+	ctx.translate(consts.BORDER_WIDTH, consts.BORDER_WIDTH);
 
 	paintGrid(ctx);
 	client.getPlayers().forEach(function (p) {
@@ -253,7 +215,6 @@ function paint(ctx) {
 	if ((!user || user.dead) && !showedDead) {
 		showedDead = true;
 		console.log("You died!");
-		//return;
 	}
 }
 
@@ -284,11 +245,6 @@ function update() {
 		roll.value = playerPortion[player.num] / consts.GRID_COUNT / consts.GRID_COUNT;
 		roll.update();
 	});
-
-	//Zoom goes from 1 to .5, decreasing as portion goes up. TODO: maybe can modify this?
-	//if (portionsRolling[user.num]) zoom = 0.2 / (portionsRolling[user.num].lag + 1);
-	//TODO: animate player is dead. (maybe explosion?), and tail rewinds itself.
-	if (user) centerOnPlayer(user, animateTo);
 }
 
 //Helper methods

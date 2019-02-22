@@ -22,8 +22,8 @@ function mod(x) {
 function connect() {
 	var prefixes = consts.PREFIXES.split(" ");
 	var names = consts.NAMES.split(" ");
-	var name = process.argv[3] || ["[BOT]", prefixes[Math.floor(Math.random() * prefixes.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
-	client.connectGame(process.argv[2], name, function(success, msg) {
+	var name = process.argv[3] || [prefixes[Math.floor(Math.random() * prefixes.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
+	client.connectGame(process.argv[2], "[BOT] " + name, function(success, msg) {
 		if (!success) {
 			console.error(msg);
 			setTimeout(connect, 1000);
