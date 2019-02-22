@@ -255,7 +255,7 @@ function setUser(player) {
 
 function update() {
 	var dead = [];
-	core.updateFrame(grid, players, dead, function addKill(killer, other) {
+	core.updateFrame(grid, players, dead, function(killer, other) { //addKill
 		if (players[killer] === user && killer !== other) kills++;
 	});
 	dead.forEach(function(val) {

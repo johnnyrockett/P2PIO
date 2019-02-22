@@ -1,6 +1,4 @@
-const fs = require("fs"),
-	path = require("path");
-var config = require(path.join(__dirname, "config.json"));
+var config = require("./config.json");
 
 if (!(config.http_port >= 0 && config.http_port < 65536 && config.http_port % 1 === 0)) {
 	console.error("[ERROR] http_port argument must be an integer >= 0 and < 65536.");
@@ -43,7 +41,7 @@ io.on("connection", function(socket) {
 	socket.on("hello", function(data, fn) {
 		//TODO: error checking.
 		if (data.name && data.name.length > 32) fn(false, "Your name is too long!");
-		else if (!game.addPlayer(socket, data.name)) fn(false, "Game is too full!");
+		else if (!game.addPlayer(socket, data.name)) fn(false, "There're too many platers!");
 		else fn(true);
 	});
 	socket.on("pings", function(fn) {

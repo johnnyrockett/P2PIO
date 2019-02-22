@@ -7,9 +7,9 @@ if (process.argv.length < 3) {
 //TODO: add weight to the max land area and last land area, and also the number of kills
 //TODO: genetic gene pooling
 
-var core = require("./core");
-var client = require("./game-client");
-var consts = require("../config.json").consts;
+var core = require("./src/core");
+var client = require("./src/game-client");
+var consts = require("./config.json").consts;
 
 var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 
@@ -99,7 +99,10 @@ function foundProto(func) {
 }
 
 function connect() {
-	client.connectGame(process.argv[2], process.argv[3] || "[BOT]", function(success, msg) {
+	var prefixes = consts.PREFIXES.split(" ");
+	var names = consts.NAMES.split(" ");
+	var name = process.argv[3] || ["[BOT]", prefixes[Math.floor(Math.random() * prefixes.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
+	client.connectGame(process.argv[2], name, function(success, msg) {
 		if (!success) setTimeout(connect, 1000);
 	});
 }

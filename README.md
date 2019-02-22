@@ -20,13 +20,9 @@ After cloning this repository, run the follow commands to install dependencies a
 npm start
 ```
 
-You can configure the game by editing `config.json`. WARNING: DO NOT EDIT THE `consts` SETTINGS UNLESS YOU KNOW WHAT YOU ARE DOING.
+You can configure the game by editing `config.json`.
 
-## Bots
-
-```bash
-node src/paper-io-bot.js ws://localhost:8081
-```
+**WARNING: DO NOT EDIT THE `consts` SETTINGS UNLESS YOU KNOW WHAT YOU ARE DOING.**
 
 ## Build
 
@@ -35,8 +31,18 @@ sudo npm install -g browserify uglify-es
 browserify client.js | uglifyjs > public/bundle.js
 ```
 
+**WARNING: REMEMBER TO BUILD AGAIN AFTER EDITING ANY FILE.**
+
+## Bots
+
+```bash
+node paper-io-bot.js ws://localhost:8081
+```
+
 ## Roadmap & TODO List
 
+- [x] 统一配置文件
+- [ ] 更多游戏模式
 - [ ] 多个游戏房间
 - [ ] 加快渲染速度
 - [ ] 优化胜负判定

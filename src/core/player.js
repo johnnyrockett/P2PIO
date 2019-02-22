@@ -295,7 +295,7 @@ function Player(grid, sdata) {
 
 	//Parameters
 	data.num = sdata.num;
-	data.name = sdata.name || ""; //|| "Player " + (data.num + 1);
+	data.name = sdata.name || "Player " + (data.num + 1);
 	data.grid = grid;
 	data.posX = sdata.posX;
 	data.posY = sdata.posY;
