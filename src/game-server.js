@@ -52,15 +52,6 @@ function Game(id) {
 				"grid": gridSerialData(grid, players)
 			});
 		});
-		//Verifies that this client has executed this frame properly
-		client.on("verify", function(data, resp) {
-			if (typeof resp !== "function") return;
-			if (!data.frame) resp(false, false, "No frame supplied");
-			else if (!checkInt(data.frame, 0, frame + 1)) resp(false, false, "Must be a valid frame number");
-			else {
-				verifyPlayerLocations(data.frame, data.locs, resp);
-			}
-		});
 		client.on("frame", function(data, errorHan) {
 			if (typeof data === "function") {
 				errorHan(false, "No data supplied.");

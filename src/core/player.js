@@ -3,8 +3,6 @@ var Color = require("./color");
 var Grid = require("./grid");
 var consts = require("../../config.json").consts;
 
-var NEW_PLAYER_LAG = 60; //Wait for a second at least
-
 function defineGetter(getter) {
 	return {
 		get: getter,
@@ -390,7 +388,7 @@ Player.prototype.render = function(ctx, fade) {
 };
 
 function move(data) {
-	if (data.waitLag < NEW_PLAYER_LAG) {
+	if (data.waitLag < consts.NEW_PLAYER_LAG) { //Wait for a second at least
 		data.waitLag++;
 		return;
 	}

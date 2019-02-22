@@ -37,12 +37,15 @@ browserify client.js | uglifyjs > public/bundle.js
 
 ```bash
 node paper-io-bot.js ws://localhost:8081
+#or
+node bot.js ws://localhost:8081
 ```
 
 ## Roadmap & TODO List
 
 - [x] 统一配置文件
-- [ ] 更多游戏模式
+- [x] 玩家观战模式
+- [ ] 更多游戏玩法
 - [ ] 多个游戏房间
 - [ ] 加快渲染速度
 - [ ] 优化胜负判定

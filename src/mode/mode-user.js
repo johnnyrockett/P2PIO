@@ -341,8 +341,7 @@ module.exports = exports = {
 		barProportionRolling[player.num] = new Rolling(0, ANIMATE_FRAMES);
 	},
 	disconnect: function() {
-		$("#begin").fadeIn(1000);
-		$("#main-ui").fadeOut(1000);
+		$("#wasted").fadeIn(1000);
 	},
 	removePlayer: function(player) {
 		delete playerPortion[player.num];

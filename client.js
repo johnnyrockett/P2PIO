@@ -8,8 +8,8 @@ function run(flag) {
 	client.renderer = flag ? require("./src/mode/mode-god") : require("./src/mode/mode-user");
 	client.connectGame("//" + window.location.hostname + ":" + config.ws_port, $("#name").val(), function(success, msg) {
 		if (success) {
-			$("#begin").fadeOut(1000);
 			$("#main-ui").fadeIn(1000);
+			$("#begin, #wasted").fadeOut(1000);
 		}
 		else {
 			$("#error").text(msg);
@@ -38,10 +38,10 @@ $(function() {
 		$("#name").keypress(function(evt) {
 			if (evt.which === 13) run();
 		});
-		$("#start").removeAttr("disabled").click(function(evt) {
+		$(".start").removeAttr("disabled").click(function(evt) {
 			run();
 		});
-		$("#spectate").removeAttr("disabled").click(function(evt) {
+		$(".spectate").removeAttr("disabled").click(function(evt) {
 			run(true);
 		});
 	});
@@ -86,4 +86,9 @@ $(document).on("touchstart", function (e1) {
 		else if (deltaX < 0 && Math.abs(deltaX) > Math.abs(deltaY)) newHeading = 3;
 		client.changeHeading(newHeading);
 	});
+});
+
+$("#menu").on("click", function() {
+	$("#main-ui, #wasted").fadeOut(1000);
+	$("#begin").fadeIn(1000);
 });

@@ -197,17 +197,6 @@ function processFrame(data) {
 		var p = players[i];
 		locs[p.num] = [p.posX, p.posY, p.waitLag];
 	}
-	/*
-	socket.emit("verify", {
-		frame: frame,
-		locs: locs
-	}, function(frame, success, adviceFix, msg) {
-		if (!success && requesting === -1) {
-			console.error(frame + ": " + msg);
-			if (adviceFix) socket.emit("requestFrame");
-		}
-	}.bind(this, frame));
-	*/
 	dirty = true;
 	mimiRequestAnimationFrame(paintLoop);
 	timeout = setTimeout(function() {

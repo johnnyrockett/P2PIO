@@ -10,7 +10,6 @@
 <link rel="stylesheet" href="static/styles.css"/>
 <script src="static/jquery.min.js"></script>
 <script src="static/prefixfree.min.js"></script>
-<script src="bundle.js"></script>
 </head>
 <body>
 <canvas id="main-ui"></canvas>
@@ -23,17 +22,15 @@
 		</svg>
 	</a>
 	<div class="center">
-		<!--<h1>Paper.io!</h1>
-		<small>Todo: replace ^^^ with a picture. Work in progress.</small><br/>-->
 		<img class="scale" src="static/logo.png"/>
 		<h1>Enter your name</h1>
 		<input id="name" autocomplete="off" placeholder="An awesome name!"/>
-		<input id="start" type="button" value="Play!" disabled="disabled"/>
+		<input class="start yellow" type="button" value="Play!" disabled="disabled"/>
 		<br/>
 		<br/>
-		<input id="mode" type="button" value="Mode" disabled="disabled"/>
-		<input id="skins" type="button" value="Skins" disabled="disabled"/>
-		<input id="spectate" type="button" value="Spectate" disabled="disabled"/>
+		<input id="mode" class="orange" type="button" value="Mode" disabled="disabled"/>
+		<input id="skins" class="yellow" type="button" value="Skins" disabled="disabled"/>
+		<input class="spectate green" type="button" value="Spectate" disabled="disabled"/>
 		<div>
 			<small id="error">Please wait... Maybe something's wrong!</small>
 			<noscript>
@@ -42,5 +39,14 @@
 		</div>
 	</div>
 </div>
+<div id="wasted">
+	<div class="center">
+		<img class="scale" src="static/wasted.svg"/>
+		<input class="start orange" type="button" value="Play Again" disabled="disabled"/>
+		<input id="menu" class="yellow" type="button" value="Main Menu"/>
+		<input class="spectate green" type="button" value="Spectate" disabled="disabled"/>
+	</div>
+</div>
+<script src="bundle.js"></script>
 </body>
 </html>
