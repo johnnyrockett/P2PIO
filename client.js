@@ -88,7 +88,7 @@ $(document).on("touchstart", function (e1) {
 	});
 });
 
-$("#menu").on("click", function() {
+$(".menu").on("click", function() {
 	$("#main-ui, #wasted").fadeOut(1000);
 	$("#begin").fadeIn(1000);
 });

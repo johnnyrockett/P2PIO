@@ -162,7 +162,7 @@ function paintUIBar(ctx) {
 	}
 
 	//Show leaderboard
-	var leaderboardNum = Math.min(5, sorted.length);
+	var leaderboardNum = Math.min(consts.LEADERBOARD_NUM, sorted.length);
 	for (var i = 0; i < leaderboardNum; i++) {
 		var player = sorted[i].player;
 		var name = player.name || "Unnamed";
@@ -304,7 +304,6 @@ module.exports = exports = {
 		barProportionRolling[player.num] = new Rolling(0, ANIMATE_FRAMES);
 	},
 	disconnect: function() {
-		$("#wasted").fadeIn(1000);
 	},
 	removePlayer: function(player) {
 		delete playerPortion[player.num];

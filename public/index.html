@@ -7,9 +7,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-touch-fullscreen" content="yes"/>
 <title>Paper.io</title>
-<link rel="stylesheet" href="static/styles.css"/>
-<script src="static/jquery.min.js"></script>
-<script src="static/prefixfree.min.js"></script>
+<link rel="stylesheet" href="css/styles.css"/>
+<link rel="stylesheet" href="css/font-awesome/css/font-awesome.min.css"/>
+<script src="js/jquery.min.js"></script>
+<script src="js/prefixfree.min.js"></script>
 </head>
 <body>
 <canvas id="main-ui"></canvas>
@@ -22,31 +23,39 @@
 		</svg>
 	</a>
 	<div class="center">
-		<img class="scale" src="static/logo.png"/>
+		<img class="scale" src="image/logo.png"/>
 		<h1>Enter your name</h1>
 		<input id="name" autocomplete="off" placeholder="An awesome name!"/>
-		<input class="start yellow" type="button" value="Play!" disabled="disabled"/>
+		<button class="start yellow" disabled="disabled">Play!</button>
 		<br/>
 		<br/>
-		<input id="mode" class="orange" type="button" value="Mode" disabled="disabled"/>
-		<input id="skins" class="yellow" type="button" value="Skins" disabled="disabled"/>
-		<input class="spectate green" type="button" value="Spectate" disabled="disabled"/>
+		<button id="mode" class="orange" disabled="disabled">Mode</button>
+		<button id="skins" class="yellow" disabled="disabled">Skins</button>
+		<button class="spectate green" disabled="disabled">Spectate</button>
 		<div>
-			<small id="error">Please wait... Maybe something's wrong!</small>
+			<span id="error">Please wait... Maybe something's wrong!</span>
 			<noscript>
-				<small>Your browser does not support JavaScript!</small>
+				<span>Your browser does not support JavaScript!</span>
 			</noscript>
 		</div>
 	</div>
 </div>
 <div id="wasted">
 	<div class="center">
-		<img class="scale" src="static/wasted.svg"/>
-		<input class="start orange" type="button" value="Play Again" disabled="disabled"/>
-		<input id="menu" class="yellow" type="button" value="Main Menu"/>
-		<input class="spectate green" type="button" value="Spectate" disabled="disabled"/>
+		<img class="scale" src="image/wasted.svg"/>
+		<button class="start orange" disabled="disabled">Play Again</button>
+		<button class="menu yellow">Main Menu</button>
+		<button class="spectate green" disabled="disabled">Spectate</button>
 	</div>
 </div>
+<button class="toggle yellow"><i class="fa fa-cogs"></i></button>
+<div id="settings">
+	<button class="menu yellow">Main Menu</button>
+</div>
+<audio loop="loop" preload="auto" autoplay>
+	<source src="music/gwent.mp3" type="audio/mp3"/>
+	<source src="music/gwent.ogg" type="audio/ogg"/>
+</audio>
 <script src="bundle.js"></script>
 </body>
 </html>

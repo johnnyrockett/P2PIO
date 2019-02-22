@@ -24,6 +24,8 @@ You can configure the game by editing `config.json`.
 
 **WARNING: DO NOT EDIT THE `consts` SETTINGS UNLESS YOU KNOW WHAT YOU ARE DOING.**
 
+**WARNING: REMEMBER TO BUILD AGAIN AFTER EDITING ANY FILE, INCLUDE `config.json`.**
+
 ## Build
 
 ```bash
@@ -31,9 +33,9 @@ sudo npm install -g browserify uglify-es
 browserify client.js | uglifyjs > public/bundle.js
 ```
 
-**WARNING: REMEMBER TO BUILD AGAIN AFTER EDITING ANY FILE.**
-
 ## Bots
+
+Set `bots` in `config.json` to a non-zero value, or execute the command below:
 
 ```bash
 node paper-io-bot.js ws://localhost:8081

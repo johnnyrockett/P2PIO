@@ -55,10 +55,11 @@ canvas {
 	color: #fff;
 	position: absolute;
 	top: 0;
-	right: 0;
+	left: 0;
 	border: 0;
 	width: 80px;
 	height: 80px;
+	transform: rotate(-90deg);
 }
 #github:hover svg {
 	width: 160px;
@@ -86,13 +87,23 @@ canvas {
 		transform: scale(0.8);
 	}
 }
-input {
+input, button {
 	font-family: "Changa", "Sans Serif";
 	font-size: 1.5rem;
 	outline: none;
 	border: 0;
 	padding: .5rem 1rem;
 	line-height: 2.5rem;
+}
+button {
+	text-align: center;
+	cursor: pointer;
+}
+button:active {
+	transform: translateY(4px);
+}
+button:disabled {
+	cursor: not-allowed;
 }
 #name {
 	background: #ededd1;
@@ -131,17 +142,7 @@ input {
 .green:active {
 	border-bottom: 2px solid #56a130;
 }
-input[type=button] {
-	text-align: center;
-	cursor: pointer;
-}
-input[type=button]:active {
-	transform: translateY(4px);
-}
-input[type=button]:disabled {
-	cursor: not-allowed;
-}
-small {
+span {
 	color: red;
 }
 #wasted {
@@ -149,4 +150,13 @@ small {
 }
 #wasted img {
 	width: 650px;
+}
+.toggle {
+	position: fixed;
+	right: 5px;
+	bottom: 5px;
+}
+#settings {
+	display: none;
+	
 }

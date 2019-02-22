@@ -37,7 +37,7 @@ function Game(id) {
 		newPlayers.push(p);
 		nextInd++;
 		core.initPlayer(grid, p);
-		if (p.name.indexOf("[BOT]") == -1) console.log(`[${new Date()}] ${p.name || "Unnamed"}  (${p.num}) joined.`);
+		if (p.name.indexOf("[BOT]") == -1) console.log(`[${new Date()}] ${p.name || "Unnamed"} (${p.num}) joined.`);
 		client.on("requestFrame", function() {
 			if (p.frame === frame) return;
 			p.frame = frame; //Limit number of requests per frame (One per frame)
@@ -74,7 +74,7 @@ function Game(id) {
 		client.on("disconnect", function() {
 			p.die(); //Die immediately if not already
 			p.disconnected = true;
-			if (p.name.indexOf("[BOT]") == -1) console.log(`[${new Date()}] ${p.name || "Unnamed"}  (${p.num}) left.`);
+			if (p.name.indexOf("[BOT]") == -1) console.log(`[${new Date()}] ${p.name || "Unnamed"} (${p.num}) left.`);
 		});
 		return true;
 	};

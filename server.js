@@ -12,7 +12,8 @@ if (!(config.ws_port >= 0 && config.ws_port < 65536 && config.ws_port % 1 === 0)
 
 const finalhandler = require("finalhandler"),
 	http = require("http"),
-	serveStatic = require("serve-static");
+	serveStatic = require("serve-static"),
+	exec = require('child_process').exec;
 //Serve up public/ folder
 var serve = serveStatic("public/", {
 	"setHeaders": function(res, path) {
@@ -57,3 +58,14 @@ io.on("connection", function(socket) {
 setInterval(function() {
 	game.tickFrame();
 }, 1000 / 60);
+
+for (var i = 0; i < parseInt(config.bots); i++) {
+	exec("node paper-io-bot.js ws://localhost:" + config.ws_port, function(error, stdout, stderr) {
+		if(error) {
+			console.error("error: " + error);
+			return;
+		}
+		console.log("stdout: " + stdout);
+		console.log("stderr: " + typeof stderr);
+	});
+}
