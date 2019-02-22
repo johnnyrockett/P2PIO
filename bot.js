@@ -57,10 +57,6 @@ var DIST_TYPES = {
 	}
 };
 
-function log(msg) {
-	return console.log(`[${new Date()}] ${msg}`);
-}
-
 function generateLandDirections() {
 	function mod(x) {
 		x %= 4;
@@ -103,7 +99,10 @@ function connect() {
 	var names = consts.NAMES.split(" ");
 	var name = process.argv[3] || ["[BOT]", prefixes[Math.floor(Math.random() * prefixes.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
 	client.connectGame(process.argv[2], name, function(success, msg) {
-		if (!success) setTimeout(connect, 1000);
+		if (!success) {
+			console.error(msg);
+			setTimeout(connect, 1000);
+		}
 	});
 }
 
@@ -188,7 +187,7 @@ function printGrid() {
 			str += chars.get(r, c);
 		}
 	}
-	log(str);
+	console.log(str);
 }
 
 function update(frame) {
@@ -211,7 +210,7 @@ function update(frame) {
 				weight += point;
 				str += distType + ": " + point + ", ";
 			}
-			//log(str);
+			//console.log(str);
 			weights[d] = weight;
 		}
 
@@ -232,7 +231,7 @@ function update(frame) {
 				total++;
 			}
 		}
-		//log(weights)
+		//console.log(weights)
 		//Choose a random direction from the weighted list
 		var choice = Math.random() * total;
 		var d = 0;
@@ -255,9 +254,9 @@ client.renderer = {
 	disconnect: function() {
 		var dt = (endFrame - startFrame);
 		startFrame = -1;
-		log(`I died... (survived for ${dt} frames.)`);
-		log(`I killed ${client.kills} player(s).`);
-		log("Coefficients: " + coeffs);
+		console.log(`[${new Date()}] I died... (survived for ${dt} frames.)`);
+		console.log(`[${new Date()}] I killed ${client.kills} player(s).`);
+		console.log("Coefficients: " + coeffs);
 
 		var mutation = Math.min(10, Math.pow(2, calcFavorability(params)));
 		for (var i = 0; i < coeffs.length; i++) {

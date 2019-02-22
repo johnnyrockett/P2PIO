@@ -287,7 +287,6 @@ function hitsTail(data, other) {
 	&& !!(data.tailGrid[other.row] && data.tailGrid[other.row][other.col]);
 }
 
-var SPEED = 5;
 var SHADOW_OFFSET = 10;
 
 function Player(grid, sdata) {
@@ -324,7 +323,7 @@ function Player(grid, sdata) {
 
 	//Instance methods
 	this.move = move.bind(this, data);
-	this.die = function() { data.dead = true;};
+	this.die = function() { data.dead = true; };
 	this.serialData = function() {
 		return {
 			base: this.baseColor,
@@ -400,10 +399,10 @@ function move(data) {
 	if (this.posX % consts.CELL_WIDTH !== 0 || this.posY % consts.CELL_WIDTH !== 0) heading = data.currentHeading;
 	else data.currentHeading = heading;
 	switch (heading) {
-		case 0: data.posY -= SPEED; break; //UP
-		case 1: data.posX += SPEED; break; //RIGHT
-		case 2: data.posY += SPEED; break; //DOWN
-		case 3: data.posX -= SPEED; break; //LEFT
+		case 0: data.posY -= consts.SPEED; break; //UP
+		case 1: data.posX += consts.SPEED; break; //RIGHT
+		case 2: data.posY += consts.SPEED; break; //DOWN
+		case 3: data.posX -= consts.SPEED; break; //LEFT
 	}
 	//Check for out of bounds
 	var row = this.row, col = this.col;

@@ -31,7 +31,7 @@ catch (e) {
 }
 
 //Public API
-function connectGame(url, name, callback) {
+function connectGame(url, name, callback, flag) {
 	if (running) return; //Prevent multiple runs
 	running = true;
 	user = null;
@@ -62,7 +62,7 @@ function connectGame(url, name, callback) {
 			addPlayer(pl);
 		});
 		user = allPlayers[data.num];
-		if (!user) throw new Error();
+		//if (!user) throw new Error();
 		setUser(user);
 		//Load grid
 		var gridData = new Uint8Array(data.grid);
@@ -99,7 +99,8 @@ function connectGame(url, name, callback) {
 	socket.emit("hello", {
 		name: name,
 		type: 0, //Free-for-all
-		gameid: -1 //Requested game-id, or -1 for anyone
+		gameid: -1, //Requested game-id, or -1 for anyone
+		god: flag
 	}, function(success, msg) {
 		if (success) console.info("Connected to game!");
 		else {
@@ -160,7 +161,7 @@ function processFrame(data) {
 		return;
 	}
 	if (data.frame - 1 !== frame) {
-		console.error("Frames don\"t match up!");
+		console.error("Frames don't match up!");
 		socket.emit("requestFrame"); //Restore data
 		requesting = data.frame;
 		frameCache.push(data);
@@ -169,7 +170,7 @@ function processFrame(data) {
 	frame++;
 	if (data.newPlayers) {
 		data.newPlayers.forEach(function(p) {
-			if (p.num === user.num) return;
+			if (user && p.num === user.num) return;
 			var pl = new core.Player(grid, p);
 			addPlayer(pl);
 			core.initPlayer(grid, pl);
@@ -269,7 +270,6 @@ function update() {
 [connectGame, changeHeading, getOthers, getPlayers, getUser].forEach(function(f) {
 	exports[f.name] = f;
 });
-exports.renderer = null;
 Object.defineProperties(exports, {
 	allowAnimation: {
 		get: function() {

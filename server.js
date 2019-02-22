@@ -40,6 +40,10 @@ var game = new Game();
 io.on("connection", function(socket) {
 	socket.on("hello", function(data, fn) {
 		//TODO: error checking.
+		if (data.god && game.addGod(socket)) {
+			fn(true);
+			return;
+		}
 		if (data.name && data.name.length > 32) fn(false, "Your name is too long!");
 		else if (!game.addPlayer(socket, data.name)) fn(false, "There're too many platers!");
 		else fn(true);

@@ -2,18 +2,10 @@
 
 var io = require("socket.io-client");
 var client = require("./src/game-client");
-var config = require("./config.json")
-client.allowAnimation = true;
-client.renderer = require("./src/mode/mode-user");
+var config = require("./config.json");
 
-var mimiRequestAnimationFrame = window.requestAnimationFrame
-	|| window.webkitRequestAnimationFrame
-	|| window.mozRequestAnimationFrame
-	|| window.oRequestAnimationFrame
-	|| window.msRequestAnimationFrame
-	|| function(callback) { window.setTimeout(callback, 1000 / 30) };
-
-function run() {
+function run(flag) {
+	client.renderer = flag ? require("./src/mode/mode-god") : require("./src/mode/mode-user");
 	client.connectGame("//" + window.location.hostname + ":" + config.ws_port, $("#name").val(), function(success, msg) {
 		if (success) {
 			$("#begin").fadeOut(1000);
@@ -22,7 +14,7 @@ function run() {
 		else {
 			$("#error").text(msg);
 		}
-	});
+	}, flag);
 }
 
 $(function() {
@@ -44,10 +36,13 @@ $(function() {
 		socket.disconnect();
 		error.text("All done, have fun!");
 		$("#name").keypress(function(evt) {
-			if (evt.which === 13) mimiRequestAnimationFrame(run);
+			if (evt.which === 13) run();
 		});
 		$("#start").removeAttr("disabled").click(function(evt) {
-			mimiRequestAnimationFrame(run);
+			run();
+		});
+		$("#spectate").removeAttr("disabled").click(function(evt) {
+			run(true);
 		});
 	});
 	socket.on("connect_error", function() {
@@ -69,7 +64,7 @@ $(document).keydown(function(e) {
 		default: return; //Exit handler for other keys
 	}
 	client.changeHeading(newHeading);
-	//e.preventDefault();
+	e.preventDefault();
 });
 
 $(document).on("touchmove", function(e) {

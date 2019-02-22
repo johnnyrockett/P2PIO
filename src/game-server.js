@@ -29,6 +29,7 @@ function Game(id) {
 	}
 	var nextInd = 0;
 	var players = [];
+	var gods = [];
 	var newPlayers = [];
 	var frameLocs = [];
 	var frame = 0;
@@ -110,6 +111,36 @@ function Game(id) {
 		});
 		return true;
 	};
+	this.addGod = function(client) {
+		var g = {
+			client: client,
+			frame: frame
+		}
+		gods.push(g);
+		var splayers = players.map(function(val) {
+			return val.serialData();
+		});
+		client.emit("game", {
+			"gameid": id,
+			"frame": frame,
+			"players": splayers,
+			"grid": gridSerialData(grid, players)
+		});
+		client.on("requestFrame", function() {
+			if (g.frame === frame) return;
+			g.frame = frame; //Limit number of requests per frame (One per frame)
+			var splayers = players.map(function(val) {
+				return val.serialData();
+			});
+			g.client.emit("game", {
+				"gameid": id,
+				"frame": frame,
+				"players": splayers,
+				"grid": gridSerialData(grid, players)
+			});
+		});
+		return true;
+	};
 
 	function pushPlayerLocations() {
 		var locs = [];
@@ -182,6 +213,9 @@ function Game(id) {
 		}
 		for (var p of players) {
 			p.client.emit("notifyFrame", data);
+		}
+		for (var g of gods) {
+			g.client.emit("notifyFrame", data);
 		}
 		frame++;
 		pushPlayerLocations();

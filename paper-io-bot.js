@@ -13,10 +13,6 @@ var startFrame = -1;
 var endFrame = -1;
 var grid, others, user, playerPortion = {}, claim = [];
 
-function log(msg) {
-	return console.log(`[${new Date()}] ${msg}`);
-}
-
 function mod(x) {
 	x %= 4;
 	if (x < 0) x += 4;
@@ -28,7 +24,10 @@ function connect() {
 	var names = consts.NAMES.split(" ");
 	var name = process.argv[3] || ["[BOT]", prefixes[Math.floor(Math.random() * prefixes.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
 	client.connectGame(process.argv[2], name, function(success, msg) {
-		if (!success) setTimeout(connect, 1000);
+		if (!success) {
+			console.error(msg);
+			setTimeout(connect, 1000);
+		}
 	});
 }
 
@@ -190,8 +189,8 @@ client.renderer = {
 		var dt = (endFrame - startFrame);
 		startFrame = -1;
 
-		log(`I died... (survived for ${dt} frames.)`);
-		log(`I killed ${client.kills} player(s).`);
+		console.log(`[${new Date()}] I died... (survived for ${dt} frames.)`);
+		console.log(`[${new Date()}] I killed ${client.kills} player(s).`);
 		setTimeout(connect, 5000);
 	},
 	removePlayer: function(player) {
