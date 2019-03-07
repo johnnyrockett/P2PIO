@@ -22,15 +22,12 @@ npm start
 
 You can configure the game by editing `config.json`.
 
-**WARNING: DO NOT EDIT THE `consts` SETTINGS UNLESS YOU KNOW WHAT YOU ARE DOING.**
-
-**WARNING: REMEMBER TO BUILD AGAIN AFTER EDITING ANY FILE, INCLUDE `config.json`.**
+**WARNING: Remember to BUILD AGAIN after editing ANY FILE, INCLUDE `config.json`.**
 
 ## Build
 
 ```bash
-sudo npm install -g browserify uglify-es
-browserify client.js | uglifyjs > public/bundle.js
+npm run build
 ```
 
 ## Bots

@@ -61,7 +61,7 @@ setInterval(function() {
 
 for (var i = 0; i < parseInt(config.bots); i++) {
 	exec("node paper-io-bot.js ws://localhost:" + config.ws_port, function(error, stdout, stderr) {
-		if(error) {
+		if (error) {
 			console.error("error: " + error);
 			return;
 		}
