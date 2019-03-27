@@ -4,9 +4,9 @@ var io = require("socket.io-client");
 var client = require("./src/game-client");
 var config = require("./config.json");
 
-function run(flag) {
+function run(port, flag) {
 	client.renderer = flag ? require("./src/mode/mode-god") : require("./src/mode/mode-user");
-	client.connectGame("//" + window.location.hostname + ":" + config.ws_port, $("#name").val(), function(success, msg) {
+	client.connectGame("//" + window.location.hostname + ":" + port, $("#name").val(), function(success, msg) {
 		if (success) {
 			$("#main-ui").fadeIn(1000);
 			$("#begin, #wasted").fadeOut(1000);
@@ -18,35 +18,45 @@ function run(flag) {
 }
 
 $(function() {
-	var error = $("#error");
+	var err = $("#error");
 	if (!window.WebSocket) {
-		error.text("Your browser does not support WebSockets!");
+		err.text("Your browser does not support WebSockets!");
 		return;
 	}
-	error.text("Loading... Please wait"); //TODO: show loading screen
-	var socket = io("//" + window.location.hostname + ":" + config.ws_port, {
-		forceNew: true,
-		upgrade: false,
-		transports: ["websocket"]
-	});
-	socket.on("connect", function() {
-		socket.emit("pings");
-	});
-	socket.on("pongs", function() {
-		socket.disconnect();
-		error.text("All done, have fun!");
-		$("#name").keypress(function(evt) {
-			if (evt.which === 13) run();
-		});
-		$(".start").removeAttr("disabled").click(function(evt) {
-			run();
-		});
-		$(".spectate").removeAttr("disabled").click(function(evt) {
-			run(true);
-		});
-	});
-	socket.on("connect_error", function() {
-		error.text("Cannot connect with server. This probably is due to misconfigured proxy server. (Try using a different browser)");
+	err.text("Loading... Please wait"); //TODO: show loading screen
+	$.ajax("/port", {
+		type: "get",
+		dataType: "text",
+		error: function(xhr, status, error) {
+			console.log("Error");
+		},
+		success: function(data, status, xhr) {
+			var port = data;
+			var socket = io("//" + window.location.hostname + ":" + port, {
+				forceNew: true,
+				upgrade: false,
+				transports: ["websocket"]
+			});
+			socket.on("connect", function() {
+				socket.emit("pings");
+			});
+			socket.on("pongs", function() {
+				socket.disconnect();
+				err.text("All done, have fun!");
+				$("#name").keypress(function(evt) {
+					if (evt.which === 13) run();
+				});
+				$(".start").removeAttr("disabled").click(function(evt) {
+					run(port);
+				});
+				$(".spectate").removeAttr("disabled").click(function(evt) {
+					run(port, true);
+				});
+			});
+			socket.on("connect_error", function() {
+				err.text("Cannot connect with server. This probably is due to misconfigured proxy server. (Try using a different browser)");
+			});
+		}
 	});
 });
 //Event listeners

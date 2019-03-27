@@ -1,45 +1,32 @@
+var express = require("express");
+var app = express();
+var path = require("path");
+var server = require("http").createServer(app);
+var io = require("socket.io")(server);
+var exec = require('child_process').exec;
+
 var config = require("./config.json");
+var port = process.env.PORT || config.port || 8080;
 
-if (!(config.http_port >= 0 && config.http_port < 65536 && config.http_port % 1 === 0)) {
-	console.error("[ERROR] http_port argument must be an integer >= 0 and < 65536.");
-	process.exit();
+if (!(config.port >= 0 && config.port < 65536 && config.port % 1 === 0)) {
+	console.error("[ERROR] `port` argument must be an integer >= 0 and < 65536. Default value will be used.");
 }
 
-if (!(config.ws_port >= 0 && config.ws_port < 65536 && config.ws_port % 1 === 0)) {
-	console.error("[ERROR] ws_port argument must be an integer >= 0 and < 65536.");
-	process.exit();
-}
-
-const finalhandler = require("finalhandler"),
-	http = require("http"),
-	serveStatic = require("serve-static"),
-	exec = require('child_process').exec;
-//Serve up public/ folder
-var serve = serveStatic("public/", {
-	"setHeaders": function(res, path) {
-		res.setHeader("Cache-Control", "public, max-age=0");
-	}
+server.listen(port, () => {
+	console.log("Server listening at port %d", port);
+});
+//Routing
+app.use(express.static(path.join(__dirname, "public")));
+app.get("/port", (req, res) => {
+	var ans = process.env.PORT ? 443 : port;
+	res.end(ans.toString());
 });
 
-//Create server
-try {
-	http.createServer(function onRequest(req, res) {
-		serve(req, res, finalhandler(req, res));
-	}).listen(config.http_port, config.hostname);
-}
-catch (e) {
-	console.error("[ERROR] hostname argument invalid.");
-	process.exit();
-}
-
-var server = http.createServer();
-server.listen(config.ws_port);
-var io = require("socket.io")(server);
-io.set("transports", ["websocket"]);
-const Game = require("./src/game-server.js");
+var Game = require("./src/game-server.js");
 var game = new Game();
-io.on("connection", function(socket) {
-	socket.on("hello", function(data, fn) {
+io.set("transports", ["websocket"]);
+io.on("connection", (socket) => {
+	socket.on("hello", (data, fn) => {
 		//TODO: error checking.
 		if (data.god && game.addGod(socket)) {
 			fn(true);
@@ -49,18 +36,18 @@ io.on("connection", function(socket) {
 		else if (!game.addPlayer(socket, data.name)) fn(false, "There're too many platers!");
 		else fn(true);
 	});
-	socket.on("pings", function(fn) {
+	socket.on("pings", (fn) => {
 		socket.emit("pongs");
 		socket.disconnect();
 	});
 });
 
-setInterval(function() {
+setInterval(() => {
 	game.tickFrame();
 }, 1000 / 60);
 
 for (var i = 0; i < parseInt(config.bots); i++) {
-	exec("node paper-io-bot.js ws://localhost:" + config.ws_port, function(error, stdout, stderr) {
+	exec("node paper-io-bot.js ws://localhost:" + port, (error, stdout, stderr) => {
 		if (error) {
 			console.error("error: " + error);
 			return;

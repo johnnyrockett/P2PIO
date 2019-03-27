@@ -1,7 +1,5 @@
 {
-	"hostname": "0.0.0.0",
-	"http_port": 8080,
-	"ws_port": 8081,
+	"port": 8080,
 	"bots": 5,
 	"consts": {
 		"GRID_COUNT": 100,
