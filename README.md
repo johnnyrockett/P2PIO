@@ -35,9 +35,9 @@ npm run build
 Set `bots` in `config.json` to a non-zero value, or execute the command below:
 
 ```bash
-node paper-io-bot.js ws://localhost:8081
+node paper-io-bot.js ws://localhost:8080
 #or
-node bot.js ws://localhost:8081
+node bot.js ws://localhost:8080
 ```
 
 ## Roadmap & TODO List

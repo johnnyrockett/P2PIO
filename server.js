@@ -1,16 +1,18 @@
-var express = require("express");
-var app = express();
-var path = require("path");
-var server = require("http").createServer(app);
-var io = require("socket.io")(server);
-var exec = require('child_process').exec;
+//https://github.com/socketio/socket.io/blob/master/examples/chat/index.js
+const express = require("express");
+const app = express();
+const path = require("path");
+const server = require("http").createServer(app);
+const io = require("socket.io")(server);
+const exec = require('child_process').exec;
 
 var config = require("./config.json");
-var port = process.env.PORT || config.port || 8080;
 
 if (!(config.port >= 0 && config.port < 65536 && config.port % 1 === 0)) {
 	console.error("[ERROR] `port` argument must be an integer >= 0 and < 65536. Default value will be used.");
+	config.port = 8080;
 }
+var port = process.env.PORT || config.port;
 
 server.listen(port, () => {
 	console.log("Server listening at port %d", port);
@@ -18,6 +20,7 @@ server.listen(port, () => {
 //Routing
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/port", (req, res) => {
+	//Deploy to Heroku
 	var ans = process.env.PORT ? 443 : port;
 	res.end(ans.toString());
 });
@@ -47,7 +50,7 @@ setInterval(() => {
 }, 1000 / 60);
 
 for (var i = 0; i < parseInt(config.bots); i++) {
-	exec("node paper-io-bot.js ws://localhost:" + port, (error, stdout, stderr) => {
+	exec(`node ${path.join(__dirname, "paper-io-bot.js")} ws://localhost:${port}`, (error, stdout, stderr) => {
 		if (error) {
 			console.error("error: " + error);
 			return;

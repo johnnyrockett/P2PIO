@@ -17,7 +17,7 @@ function run(port, flag) {
 	}, flag);
 }
 
-$(function() {
+$(document).ready(function() {
 	var err = $("#error");
 	if (!window.WebSocket) {
 		err.text("Your browser does not support WebSockets!");
