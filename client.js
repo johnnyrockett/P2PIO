@@ -5,7 +5,7 @@ var client = require("./src/game-client");
 var config = require("./config.json");
 
 function run(port, flag) {
-	client.renderer = flag ? require("./src/mode/mode-god") : require("./src/mode/mode-user");
+	client.renderer = flag ? require("./src/mode/god") : require("./src/mode/player");
 	client.connectGame("//" + window.location.hostname + ":" + port, $("#name").val(), function(success, msg) {
 		if (success) {
 			$("#main-ui").fadeIn(1000);
