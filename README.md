@@ -43,7 +43,11 @@ Set `bots` in `config.json` to a non-zero value, or execute the command below:
 
 ```bash
 node paper-io-bot.js ws://localhost:8080
-#or
+```
+
+or
+
+```bash
 node bot.js ws://localhost:8080
 ```
 
