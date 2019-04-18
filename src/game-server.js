@@ -225,7 +225,7 @@ function gridSerialData(grid, players) {
 
 function findEmpty(grid) {
 	var available = [];
-	for (var r = 1; r < grid.size - 1; r++)
+	for (var r = 1; r < grid.size - 1; r++) {
 		for (var c = 1; c < grid.size - 1; c++) {
 			var cluttered = false;
 			checkclutter: for (var dr = -1; dr <= 1; dr++) {
@@ -241,6 +241,7 @@ function findEmpty(grid) {
 				col: c
 			});
 		}
+	}
 	return (available.length === 0) ? null : available[Math.floor(available.length * Math.random())];
 }
 module.exports = Game;
