@@ -1,5 +1,5 @@
 {
-	"name": "Paper-io",
+	"name": "paper-io",
 	"version": "0.0.1",
 	"description": "An multiplayer-IO type game (cloned from Paper-IO)",
 	"main": "server.js",
@@ -16,7 +16,7 @@
 		"IO",
 		"Game"
 	],
-	"author": "theKidOfArcrania",
+	"author": "Mimi <stevenjoezhang@gmail.com> https://zhangshuqiao.org",
 	"license": "MIT",
 	"bugs": {
 		"url": "https://github.com/stevenjoezhang/paper.io/issues"
