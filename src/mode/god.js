@@ -16,7 +16,7 @@ var BAR_WIDTH = 400;
 var canvas, ctx, offscreenCanvas, offctx,
 	canvasWidth, canvasHeight, gameWidth, gameHeight;
 
-$(function() {
+$(() => {
 	canvas = $("#main-ui")[0];
 	ctx = canvas.getContext("2d");
 	offscreenCanvas = document.createElement("canvas");
@@ -144,17 +144,17 @@ function paintUIBar(ctx) {
 
 	//Calcuate rank
 	var sorted = [];
-	client.getPlayers().forEach(function(val) {
+	client.getPlayers().forEach(val => {
 		sorted.push({player: val, portion: playerPortion[val.num]});
 	});
-	sorted.sort(function(a, b) {
+	sorted.sort((a, b) => {
 		return (a.portion === b.portion) ? a.player.num - b.player.num : b.portion - a.portion;
 	});
 
 	//Rolling the leaderboard bars
 	if (sorted.length > 0) {
 		var maxPortion = sorted[0].portion;
-		client.getPlayers().forEach(function(player) {
+		client.getPlayers().forEach(player => {
 			var rolling = barProportionRolling[player.num];
 			rolling.value = playerPortion[player.num] / maxPortion;
 			rolling.update();
@@ -202,7 +202,7 @@ function paint(ctx) {
 	ctx.translate(consts.BORDER_WIDTH, consts.BORDER_WIDTH);
 
 	paintGrid(ctx);
-	client.getPlayers().forEach(function (p) {
+	client.getPlayers().forEach(p => {
 		var fr = p.waitLag;
 		if (fr < ANIMATE_FRAMES) p.render(ctx, fr / ANIMATE_FRAMES);
 		else p.render(ctx);
@@ -240,7 +240,7 @@ function update() {
 	}
 
 	//Calculate player portions
-	client.getPlayers().forEach(function(player) {
+	client.getPlayers().forEach(player => {
 		var roll = portionsRolling[player.num];
 		roll.value = playerPortion[player.num] / consts.GRID_COUNT / consts.GRID_COUNT;
 		roll.update();

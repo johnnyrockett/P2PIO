@@ -11,7 +11,7 @@ var deadFrames = 0;
 var requesting = -1; //Frame that we are requesting at
 var frameCache = []; //Frames after our request
 var allowAnimation = true;
-var grid = new core.Grid(consts.GRID_COUNT, function(row, col, before, after) {
+var grid = new core.Grid(consts.GRID_COUNT, (row, col, before, after) => {
 	invokeRenderer("updateGrid", [row, col, before, after]);
 });
 
@@ -47,17 +47,17 @@ function connectGame(url, name, callback, flag) {
 		upgrade: false,
 		transports: ["websocket"]
 	});
-	socket.on("connect", function() {
+	socket.on("connect", () => {
 		console.info("Connected to server.");
 	});
-	socket.on("game", function(data) {
+	socket.on("game", data => {
 		if (timeout != undefined) clearTimeout(timeout);
 		//Initialize game
 		//TODO: display data.gameid --- game id #
 		frame = data.frame;
 		reset();
 		//Load players
-		data.players.forEach(function(p) {
+		data.players.forEach(p => {
 			var pl = new core.Player(grid, p);
 			addPlayer(pl);
 		});
@@ -83,10 +83,10 @@ function connectGame(url, name, callback, flag) {
 		}
 	});
 	socket.on("notifyFrame", processFrame);
-	socket.on("dead", function() {
+	socket.on("dead", () => {
 		socket.disconnect(); //In case we didn"t get the disconnect call
 	});
-	socket.on("disconnect", function() {
+	socket.on("disconnect", () => {
 		console.info("Server has disconnected. Creating new game.");
 		socket.disconnect();
 		if (!user) return;
@@ -101,7 +101,7 @@ function connectGame(url, name, callback, flag) {
 		type: 0, //Free-for-all
 		gameid: -1, //Requested game-id, or -1 for anyone
 		god: flag
-	}, function(success, msg) {
+	}, (success, msg) => {
 		if (success) console.info("Connected to game!");
 		else {
 			console.error("Unable to connect to game: " + msg);
@@ -119,7 +119,7 @@ function changeHeading(newHeading) {
 			socket.emit("frame", {
 				frame: frame,
 				heading: newHeading
-			}, function(success, msg) {
+			}, (success, msg) => {
 				if (!success) console.error(msg);
 			});
 		}
@@ -175,7 +175,7 @@ function processFrame(data) {
 	}
 	frame++;
 	if (data.newPlayers) {
-		data.newPlayers.forEach(function(p) {
+		data.newPlayers.forEach(p => {
 			if (user && p.num === user.num) return;
 			var pl = new core.Player(grid, p);
 			addPlayer(pl);
@@ -183,7 +183,7 @@ function processFrame(data) {
 		});
 	}
 	var found = new Array(players.length);
-	data.moves.forEach(function(val, i) {
+	data.moves.forEach((val, i) => {
 		var player = allPlayers[val.num];
 		if (!player) return;
 		if (val.left) player.die();
@@ -205,7 +205,7 @@ function processFrame(data) {
 	}
 	dirty = true;
 	mimiRequestAnimationFrame(paintLoop);
-	timeout = setTimeout(function() {
+	timeout = setTimeout(() => {
 		console.warn("Server has timed-out. Disconnecting.");
 		socket.disconnect();
 	}, 3000);
@@ -251,10 +251,10 @@ function setUser(player) {
 
 function update() {
 	var dead = [];
-	core.updateFrame(grid, players, dead, function(killer, other) { //addKill
+	core.updateFrame(grid, players, dead, (killer, other) => { //addKill
 		if (players[killer] === user && killer !== other) kills++;
 	});
-	dead.forEach(function(val) {
+	dead.forEach(val => {
 		console.log((val.name || "Unnamed") + " is dead");
 		delete allPlayers[val.num];
 		invokeRenderer("removePlayer", [val]);
@@ -262,7 +262,7 @@ function update() {
 	invokeRenderer("update", [frame]);
 }
 //Export stuff
-[connectGame, changeHeading, getUser, getPlayers, getOthers, disconnect].forEach(function(f) {
+[connectGame, changeHeading, getUser, getPlayers, getOthers, disconnect].forEach(f => {
 	exports[f.name] = f;
 });
 Object.defineProperties(exports, {

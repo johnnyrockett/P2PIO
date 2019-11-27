@@ -20,7 +20,7 @@ exports.updateFrame = function(grid, players, dead, notifyKill) {
 		};
 
 	//Move players
-	var tmp = players.filter(function(val) {
+	var tmp = players.filter(val => {
 		val.move();
 		if (val.dead) adead.push(val);
 		return !val.dead;
@@ -78,7 +78,7 @@ exports.updateFrame = function(grid, players, dead, notifyKill) {
 		}
 	}
 
-	tmp = tmp.filter(function(val, i) {
+	tmp = tmp.filter((val, i) => {
 		if (removing[i]) {
 			adead.push(val);
 			val.die();

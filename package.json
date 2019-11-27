@@ -4,7 +4,6 @@
 	"description": "An multiplayer-IO type game (cloned from Paper-IO)",
 	"main": "server.js",
 	"scripts": {
-		"start": "node server.js",
 		"build": "browserify client.js | uglifyjs > public/js/bundle.js"
 	},
 	"repository": {

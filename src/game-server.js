@@ -10,7 +10,7 @@ function Game(id) {
 	var frameLocs = [];
 	var frame = 0;
 	var filled = 0;
-	var grid = new core.Grid(consts.GRID_COUNT, function(row, col, before, after) {
+	var grid = new core.Grid(consts.GRID_COUNT, (row, col, before, after) => {
 		if (!!after ^ !!before) {
 			if (after) filled++;
 			else filled--;
@@ -38,12 +38,10 @@ function Game(id) {
 		nextInd++;
 		core.initPlayer(grid, p);
 		if (p.name.indexOf("[BOT]") == -1) console.log(`[${new Date()}] ${p.name || "Unnamed"} (${p.num}) joined.`);
-		client.on("requestFrame", function() {
+		client.on("requestFrame", () => {
 			if (p.frame === frame) return;
 			p.frame = frame; //Limit number of requests per frame (One per frame)
-			var splayers = players.map(function(val) {
-				return val.serialData();
-			});
+			var splayers = players.map(val => val.serialData());
 			client.emit("game", {
 				"num": p.num,
 				"gameid": id,
@@ -52,7 +50,7 @@ function Game(id) {
 				"grid": gridSerialData(grid, players)
 			});
 		});
-		client.on("frame", function(data, errorHan) {
+		client.on("frame", (data, errorHan) => {
 			if (typeof data === "function") {
 				errorHan(false, "No data supplied.");
 				return;
@@ -71,7 +69,7 @@ function Game(id) {
 				}
 			}
 		});
-		client.on("disconnect", function() {
+		client.on("disconnect", () => {
 			p.die(); //Die immediately if not already
 			p.disconnected = true;
 			if (p.name.indexOf("[BOT]") == -1) console.log(`[${new Date()}] ${p.name || "Unnamed"} (${p.num}) left.`);
@@ -84,21 +82,17 @@ function Game(id) {
 			frame: frame
 		}
 		gods.push(g);
-		var splayers = players.map(function(val) {
-			return val.serialData();
-		});
+		var splayers = players.map(val => val.serialData());
 		client.emit("game", {
 			"gameid": id,
 			"frame": frame,
 			"players": splayers,
 			"grid": gridSerialData(grid, players)
 		});
-		client.on("requestFrame", function() {
+		client.on("requestFrame", () => {
 			if (g.frame === frame) return;
 			g.frame = frame; //Limit number of requests per frame (One per frame)
-			var splayers = players.map(function(val) {
-				return val.serialData();
-			});
+			var splayers = players.map(val => val.serialData());
 			g.client.emit("game", {
 				"gameid": id,
 				"frame": frame,
@@ -146,10 +140,8 @@ function Game(id) {
 
 	function tick() {
 		//TODO: notify those players that this server automatically drops out
-		var splayers = players.map(function(val) {
-			return val.serialData();
-		});
-		var snews = newPlayers.map(function(val) {
+		var splayers = players.map(val => val.serialData());
+		var snews = newPlayers.map(val => {
 			//Emit game stats.
 			val.client.emit("game", {
 				"num": val.num,
@@ -160,7 +152,7 @@ function Game(id) {
 			});
 			return val.serialData();
 		});
-		var moves = players.map(function(val) {
+		var moves = players.map(val => {
 			//Account for race condition (when heading is set after emitting frames, and before updating)
 			val.heading = val.tmpHeading;
 			return {

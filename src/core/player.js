@@ -52,7 +52,7 @@ function Tail(player, sdata) {
 	if (sdata) {
 		data.startRow = data.prevRow = sdata.startRow || 0;
 		data.startCol = data.prevCol = sdata.startCol || 0;
-		sdata.tail.forEach(function(val) {
+		sdata.tail.forEach(val => {
 			addTail(data, val.orientation, val.move);
 		});
 	}
@@ -127,7 +127,7 @@ function renderTail(data, ctx) {
 	var start = [data.startRow, data.startCol];
 
 	//fillTailRect(ctx, start, start);
-	data.tail.forEach(function(tail) {
+	data.tail.forEach(tail => {
 		var negDir = tail.orientation === 0 || tail.orientation === 3;
 
 		var back = start;
@@ -338,12 +338,8 @@ function Player(grid, sdata) {
 	//Read-only Properties
 	defineAccessorProperties(this, data, "currentHeading", "dead", "name", "num", "posX", "posY", "grid", "tail", "waitLag");
 	Object.defineProperties(this, {
-		row: defineGetter(function() {
-			return calcRow(data);
-		}),
-		col: defineGetter(function() {
-			return calcCol(data);
-		})
+		row: defineGetter(() => calcRow(data)),
+		col: defineGetter(() => calcCol(data))
 	});
 }
 
