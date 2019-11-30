@@ -24,40 +24,33 @@ $(document).ready(function() {
 		return;
 	}
 	err.text("Loading... Please wait"); //TODO: show loading screen
-	$.ajax("/port", {
-		type: "get",
-		dataType: "text",
-		error: function(xhr, status, error) {
-			console.log("Error");
-		},
-		success: function(data, status, xhr) {
-			var port = data;
-			var socket = io("//" + window.location.hostname + ":" + port, {
-				forceNew: true,
-				upgrade: false,
-				transports: ["websocket"]
+	(function() {
+		var port = location.port;
+		var socket = io(`//${location.hostname}${port ? ":" + port : ""}`, {
+			forceNew: true,
+			upgrade: false,
+			transports: ["websocket"]
+		});
+		socket.on("connect", function() {
+			socket.emit("pings");
+		});
+		socket.on("pongs", function() {
+			socket.disconnect();
+			err.text("All done, have fun!");
+			$("#name").keypress(function(evt) {
+				if (evt.which === 13) run();
 			});
-			socket.on("connect", function() {
-				socket.emit("pings");
+			$(".start").removeAttr("disabled").click(function(evt) {
+				run(port);
 			});
-			socket.on("pongs", function() {
-				socket.disconnect();
-				err.text("All done, have fun!");
-				$("#name").keypress(function(evt) {
-					if (evt.which === 13) run();
-				});
-				$(".start").removeAttr("disabled").click(function(evt) {
-					run(port);
-				});
-				$(".spectate").removeAttr("disabled").click(function(evt) {
-					run(port, true);
-				});
+			$(".spectate").removeAttr("disabled").click(function(evt) {
+				run(port, true);
 			});
-			socket.on("connect_error", function() {
-				err.text("Cannot connect with server. This probably is due to misconfigured proxy server. (Try using a different browser)");
-			});
-		}
-	});
+		});
+		socket.on("connect_error", function() {
+			err.text("Cannot connect with server. This probably is due to misconfigured proxy server. (Try using a different browser)");
+		});
+	})();
 });
 //Event listeners
 $(document).keydown(function(e) {
