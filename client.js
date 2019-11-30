@@ -4,9 +4,9 @@ var io = require("socket.io-client");
 var client = require("./src/game-client");
 var config = require("./config.json");
 
-function run(port, flag) {
+function run(flag) {
 	client.renderer = flag ? require("./src/mode/god") : require("./src/mode/player");
-	client.connectGame("//" + window.location.hostname + ":" + port, $("#name").val(), function(success, msg) {
+	client.connectGame("//" + location.host, $("#name").val(), function(success, msg) {
 		if (success) {
 			$("#main-ui").fadeIn(1000);
 			$("#begin, #wasted").fadeOut(1000);
@@ -25,8 +25,7 @@ $(document).ready(function() {
 	}
 	err.text("Loading... Please wait"); //TODO: show loading screen
 	(function() {
-		var port = location.port;
-		var socket = io(`//${location.hostname}${port ? ":" + port : ""}`, {
+		var socket = io(`//${location.host}`, {
 			forceNew: true,
 			upgrade: false,
 			transports: ["websocket"]
@@ -41,10 +40,10 @@ $(document).ready(function() {
 				if (evt.which === 13) run();
 			});
 			$(".start").removeAttr("disabled").click(function(evt) {
-				run(port);
+				run();
 			});
 			$(".spectate").removeAttr("disabled").click(function(evt) {
-				run(port, true);
+				run(true);
 			});
 		});
 		socket.on("connect_error", function() {
