@@ -26,7 +26,7 @@ function Game(id) {
 			posX: start.col * consts.CELL_WIDTH,
 			posY: start.row * consts.CELL_WIDTH,
 			currentHeading: Math.floor(Math.random() * 4),
-			name: name,
+			name,
 			num: nextInd,
 			base: possColors.shift()
 		};
@@ -78,8 +78,8 @@ function Game(id) {
 	};
 	this.addGod = function(client) {
 		var g = {
-			client: client,
-			frame: frame
+			client,
+			frame
 		}
 		gods.push(g);
 		var splayers = players.map(val => val.serialData());
@@ -164,7 +164,7 @@ function Game(id) {
 		update();
 		var data = {
 			frame: frame + 1,
-			moves: moves
+			moves
 		};
 		if (snews.length > 0) {
 			data.newPlayers = snews;

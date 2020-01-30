@@ -46,7 +46,7 @@ function Tail(player, sdata) {
 		startCol: 0,
 		prevRow: 0,
 		prevCol: 0,
-		player: player
+		player
 	};
 
 	if (sdata) {

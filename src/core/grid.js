@@ -2,8 +2,8 @@ function Grid(size, changeCallback) {
 	var grid = new Array(size);
 	var modified = false;
 	var data = {
-		grid: grid,
-		size: size
+		grid,
+		size
 	};
 
 	this.get = function(row, col) {
