@@ -54,15 +54,15 @@ $(document).ready(function() {
 //Event listeners
 $(document).keydown(function(e) {
 	var newHeading = -1;
-	switch (e.which) {
-		case 38: newHeading = 0; break; //UP
-		case 87: newHeading = 0; break; //UP (W)
-		case 39: newHeading = 1; break; //RIGHT
-		case 68: newHeading = 1; break; //RIGHT (D)
-		case 40: newHeading = 2; break; //DOWN
-		case 83: newHeading = 2; break; //DOWN (S)
-		case 37: newHeading = 3; break; //LEFT
-		case 65: newHeading = 3; break; //LEFT (A)
+	switch (e.key) {
+		case "w": case "ArrowUp":
+		newHeading = 0; break; //UP (W)
+		case "d": case "ArrowRight":
+		newHeading = 1; break; //RIGHT (D)
+		case "s": case "ArrowDown":
+		newHeading = 2; break; //DOWN (S)
+		case "a": case "ArrowLeft":
+		newHeading = 3; break; //LEFT (A)
 		default: return; //Exit handler for other keys
 	}
 	client.changeHeading(newHeading);
@@ -70,7 +70,7 @@ $(document).keydown(function(e) {
 });
 
 $(document).on("touchmove", function(e) {
-	e.preventDefault(); 
+	e.preventDefault();
 });
 
 $(document).on("touchstart", function (e1) {
