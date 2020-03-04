@@ -29,13 +29,13 @@ npm start
 
 You can configure the game by editing `config.json`.
 
-**WARNING: Remember to build again after editing any file, include `config.json`.**
-
 ## Build
 
 ```bash
 npm run build
 ```
+
+**WARNING: Remember to build again after editing any file, include `config.json`.**
 
 ## Bots
 

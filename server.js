@@ -8,6 +8,7 @@ const server = require("http").createServer(app);
 const io = require("socket.io")(server);
 const { exec } = require("child_process");
 
+exec("npm run build");
 var config = require("./config.json");
 
 if (!(config.port >= 0 && config.port < 65536 && config.port % 1 === 0)) {

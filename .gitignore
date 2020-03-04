@@ -88,3 +88,4 @@ dist/
 .DS_Store
 
 paper-io.log
+public/js/bundle.js
