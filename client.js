@@ -1,5 +1,4 @@
-/* global $ */
-
+window.$ = window.jQuery = require("jquery");
 var io = require("socket.io-client");
 var client = require("./src/game-client");
 var config = require("./config.json");
