@@ -1,5 +1,5 @@
 var core = require("./core");
-var consts = require("../config.json").consts;
+var { consts } = require("../config.json");
 
 function Game(id) {
 	var possColors = core.Color.possColors();

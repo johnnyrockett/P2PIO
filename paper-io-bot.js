@@ -5,7 +5,7 @@ if (process.argv.length < 3) {
 
 var core = require("./src/core");
 var client = require("./src/game-client");
-var consts = require("./config.json").consts;
+var { consts } = require("./config.json");
 
 var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 

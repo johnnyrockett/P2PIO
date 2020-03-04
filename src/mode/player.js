@@ -2,7 +2,7 @@
 
 var core = require("../core");
 var client = require("../game-client");
-var consts = require("../../config.json").consts;
+var { consts } = require("../../config.json");
 
 var SHADOW_OFFSET = 5;
 var ANIMATE_FRAMES = 24;
@@ -198,7 +198,7 @@ function paintUIBar(ctx) {
 	//Show leaderboard
 	var leaderboardNum = Math.min(consts.LEADERBOARD_NUM, sorted.length);
 	for (var i = 0; i < leaderboardNum; i++) {
-		var player = sorted[i].player;
+		var { player } = sorted[i];
 		var name = player.name || "Unnamed";
 		var portion = barProportionRolling[player.num].lag;
 		var nameWidth = ctx.measureText(name).width;

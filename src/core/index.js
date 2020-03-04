@@ -1,4 +1,4 @@
-var consts = require("../../config.json").consts;
+var { consts } = require("../../config.json");
 
 exports.Color = require("./color");
 exports.Grid = require("./grid");

@@ -1,6 +1,6 @@
 var io = require("socket.io-client");
 var core = require("./core");
-var consts = require("../config.json").consts;
+var { consts } = require("../config.json");
 var running = false;
 var user, socket, frame;
 var players, allPlayers;

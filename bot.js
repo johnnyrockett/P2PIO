@@ -9,7 +9,7 @@ if (process.argv.length < 3) {
 
 var core = require("./src/core");
 var client = require("./src/game-client");
-var consts = require("./config.json").consts;
+var { consts } = require("./config.json");
 
 var MOVES = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 
@@ -134,7 +134,7 @@ function traverseGrid(dir) {
 		distWeights[type] = 0;
 	}
 
-	var row = user.row, col = user.col;
+	var { row, col } = user;
 	var minRow = Math.max(0, row - 10), maxRow = Math.min(consts.GRID_COUNT, row + 10);
 	var minCol = Math.max(0, col - 10), maxCol = Math.min(consts.GRID_COUNT, col + 10);
 

@@ -1,7 +1,7 @@
 var Stack = require("./stack");
 var Color = require("./color");
 var Grid = require("./grid");
-var consts = require("../../config.json").consts;
+var { consts } = require("../../config.json");
 
 function defineGetter(getter) {
 	return {
@@ -389,7 +389,7 @@ function move(data) {
 		return;
 	}
 	//Move to new position
-	var heading = this.heading;
+	var { heading } = this;
 	if (this.posX % consts.CELL_WIDTH !== 0 || this.posY % consts.CELL_WIDTH !== 0) heading = data.currentHeading;
 	else data.currentHeading = heading;
 	switch (heading) {
@@ -399,7 +399,7 @@ function move(data) {
 		case 3: data.posX -= consts.SPEED; break; //LEFT
 	}
 	//Check for out of bounds
-	var row = this.row, col = this.col;
+	var { row, col } = this;
 	if (data.grid.isOutOfBounds(row, col)) {
 		data.dead = true;
 		return;
