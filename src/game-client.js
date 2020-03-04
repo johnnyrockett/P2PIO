@@ -23,11 +23,11 @@ try {
 		|| window.mozRequestAnimationFrame
 		|| window.oRequestAnimationFrame
 		|| window.msRequestAnimationFrame
-		|| function(callback) { window.setTimeout(callback, 1000 / 30) };
+		|| (callback => { window.setTimeout(callback, 1000 / 30) });
 	}
 }
 catch (e) {
-	mimiRequestAnimationFrame = function(callback) { setTimeout(callback, 1000 / 30) };
+	mimiRequestAnimationFrame = callback => { setTimeout(callback, 1000 / 30) };
 }
 
 //Public API

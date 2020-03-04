@@ -19,9 +19,9 @@ function defineInstanceMethods(thisobj, data /*, methods...*/) {
 function defineAccessorProperties(thisobj, data /*, names...*/) {
 	var descript = {};
 	function getAt(name) {
-		return function() {
+		return () => {
 			return data[name];
-		}
+		};
 	}
 	for (var i = 2; i < arguments.length; i++) {
 		descript[arguments[i]] = defineGetter(getAt(arguments[i]));
@@ -321,7 +321,7 @@ function Player(grid, sdata) {
 
 	//Instance methods
 	this.move = move.bind(this, data);
-	this.die = function() { data.dead = true; };
+	this.die = () => { data.dead = true; };
 	this.serialData = function() {
 		return {
 			base: this.baseColor,

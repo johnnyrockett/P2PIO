@@ -6,7 +6,7 @@ var config = require("./config.json");
 
 function run(flag) {
 	client.renderer = flag ? require("./src/mode/god") : require("./src/mode/player");
-	client.connectGame("//" + location.host, $("#name").val(), function(success, msg) {
+	client.connectGame("//" + location.host, $("#name").val(), (success, msg) => {
 		if (success) {
 			$("#main-ui").fadeIn(1000);
 			$("#begin, #wasted").fadeOut(1000);
@@ -17,42 +17,42 @@ function run(flag) {
 	}, flag);
 }
 
-$(document).ready(function() {
+$(document).ready(() => {
 	var err = $("#error");
 	if (!window.WebSocket) {
 		err.text("Your browser does not support WebSockets!");
 		return;
 	}
 	err.text("Loading... Please wait"); //TODO: show loading screen
-	(function() {
+	(() => {
 		var socket = io(`//${location.host}`, {
 			forceNew: true,
 			upgrade: false,
 			transports: ["websocket"]
 		});
-		socket.on("connect", function() {
+		socket.on("connect", () => {
 			socket.emit("pings");
 		});
-		socket.on("pongs", function() {
+		socket.on("pongs", () => {
 			socket.disconnect();
 			err.text("All done, have fun!");
-			$("#name").keypress(function(evt) {
+			$("#name").keypress(evt => {
 				if (evt.which === 13) run();
 			});
-			$(".start").removeAttr("disabled").click(function(evt) {
+			$(".start").removeAttr("disabled").click(evt => {
 				run();
 			});
-			$(".spectate").removeAttr("disabled").click(function(evt) {
+			$(".spectate").removeAttr("disabled").click(evt => {
 				run(true);
 			});
 		});
-		socket.on("connect_error", function() {
+		socket.on("connect_error", () => {
 			err.text("Cannot connect with server. This probably is due to misconfigured proxy server. (Try using a different browser)");
 		});
 	})();
 });
 //Event listeners
-$(document).keydown(function(e) {
+$(document).keydown(e => {
 	var newHeading = -1;
 	switch (e.key) {
 		case "w": case "ArrowUp":
@@ -69,14 +69,14 @@ $(document).keydown(function(e) {
 	//e.preventDefault();
 });
 
-$(document).on("touchmove", function(e) {
+$(document).on("touchmove", e => {
 	e.preventDefault();
 });
 
-$(document).on("touchstart", function (e1) {
+$(document).on("touchstart", e1 => {
 	var x1 = e1.targetTouches[0].pageX;
 	var y1 = e1.targetTouches[0].pageY;
-	$(document).one("touchend", function (e2) {
+	$(document).one("touchend", e2 => {
 		var x2 = e2.changedTouches[0].pageX;
 		var y2 = e2.changedTouches[0].pageY;
 		var deltaX = x2 - x1;
@@ -90,12 +90,12 @@ $(document).on("touchstart", function (e1) {
 	});
 });
 
-$(".menu").on("click", function() {
+$(".menu").on("click", () => {
 	client.disconnect();
 	$("#main-ui, #wasted").fadeOut(1000);
 	$("#begin").fadeIn(1000);
 });
 
-$(".toggle").on("click", function() {
+$(".toggle").on("click", () => {
 	$("#settings").slideToggle();
 });

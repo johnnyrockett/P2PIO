@@ -18,7 +18,7 @@ function Game(id) {
 		}
 	});
 	this.id = id;
-	this.addPlayer = function(client, name) {
+	this.addPlayer = (client, name) => {
 		if (players.length >= consts.MAX_PLAYERS) return false;
 		var start = findEmpty(grid);
 		if (!start) return false;
@@ -55,7 +55,7 @@ function Game(id) {
 				errorHan(false, "No data supplied.");
 				return;
 			}
-			if (typeof errorHan !== "function") errorHan = function() {};
+			if (typeof errorHan !== "function") errorHan = () => {};
 			if (!data) errorHan(false, "No data supplied.");
 			else if (!checkInt(data.frame, 0, Infinity)) errorHan(false, "Requires a valid non-negative frame integer.");
 			else if (data.frame > frame) errorHan(false, "Invalid frame received.");
@@ -76,7 +76,7 @@ function Game(id) {
 		});
 		return true;
 	};
-	this.addGod = function(client) {
+	this.addGod = client => {
 		var g = {
 			client,
 			frame

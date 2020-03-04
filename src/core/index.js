@@ -4,18 +4,18 @@ exports.Color = require("./color");
 exports.Grid = require("./grid");
 exports.Player = require("./player");
 
-exports.initPlayer = function(grid, player) {
+exports.initPlayer = (grid, player) => {
 	for (var dr = -1; dr <= 1; dr++) {
 		for (var dc = -1; dc <= 1; dc++) {
 			if (!grid.isOutOfBounds(dr + player.row, dc + player.col)) grid.set(dr + player.row, dc + player.col, player);
 		}
 	}
 };
-exports.updateFrame = function(grid, players, dead, notifyKill) {
+exports.updateFrame = (grid, players, dead, notifyKill) => {
 	var adead = [];
 	if (dead instanceof Array) adead = dead;
 
-	var kill = (!notifyKill) ? function() {} : function(killer, other) {
+	var kill = (!notifyKill) ? () => {} : (killer, other) => {
 			if (!removing[other]) notifyKill(killer, other);
 		};
 

@@ -47,7 +47,7 @@ function Color(h, s, l, a) {
 		},
 	});
 }
-Color.fromData = function(data) {
+Color.fromData = data => {
 	return new Color(data.hue, data.sat, data.lum, data.alpha);
 };
 Color.prototype.interpolateToString = function(color, amount) {
@@ -86,7 +86,7 @@ Color.prototype.rgbString = function() {
 	rgb[3] = this.a;
 	return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${this.alpha})`;
 };
-Color.possColors = function() {
+Color.possColors = () => {
 	var SATS = [192, 150, 100].map(val => val / 240);
 	var HUES = [0, 10, 20, 25, 30, 35, 40, 45, 50, 60, 70, 100, 110, 120, 125, 130, 135, 140, 145, 150, 160, 170, 180, 190, 200, 210, 220].map(val => val / 240);
 	var possColors = new Array(SATS.length * HUES.length);

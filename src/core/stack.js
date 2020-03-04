@@ -1,7 +1,7 @@
 function Stack(initSize) {
 	var len = 0;
 	var arr = [];
-	this.ensureCapacity = function(size) {
+	this.ensureCapacity = size => {
 		arr.length = Math.max(arr.length, size || 0);
 	};
 	this.push = function(ele) {
@@ -15,7 +15,7 @@ function Stack(initSize) {
 		this[len] = undefined;
 		return tmp;
 	};
-	this.isEmpty = function() {
+	this.isEmpty = () => {
 		return len === 0;
 	}
 	this.ensureCapacity(initSize);

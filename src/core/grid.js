@@ -6,11 +6,11 @@ function Grid(size, changeCallback) {
 		size
 	};
 
-	this.get = function(row, col) {
+	this.get = (row, col) => {
 		if (isOutOfBounds(data, row, col)) throw new RangeError("Row or Column value out of bounds");
 		return grid[row] && grid[row][col];
 	}
-	this.set = function(row, col, value) {
+	this.set = (row, col, value) => {
 		if (isOutOfBounds(data, row, col)) throw new RangeError("Row or Column value out of bounds");
 		if (!grid[row]) grid[row] = new Array(size);
 		var before = grid[row][col];
@@ -19,7 +19,7 @@ function Grid(size, changeCallback) {
 		modified = true;
 		return before;
 	}
-	this.reset = function() {
+	this.reset = () => {
 		if (modified) {
 			grid = new Array(size);
 			modified = false;

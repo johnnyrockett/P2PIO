@@ -87,18 +87,18 @@ var LAND_CLAIMS = {
 }
 
 function foundProto(func) {
-	return function(loc) {
-		return others.some(function(other) {
+	return loc => {
+		return others.some(other => {
 			return func(other, loc);
 		});
-	}
+	};
 }
 
 function connect() {
 	var prefixes = consts.PREFIXES.split(" ");
 	var names = consts.NAMES.split(" ");
 	var name = process.argv[3] || [prefixes[Math.floor(Math.random() * prefixes.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
-	client.connectGame(process.argv[2], "[BOT] " + name, function(success, msg) {
+	client.connectGame(process.argv[2], "[BOT] " + name, (success, msg) => {
 		if (!success) {
 			console.error(msg);
 			setTimeout(connect, 1000);
