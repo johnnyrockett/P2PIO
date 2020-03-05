@@ -1,7 +1,6 @@
 window.$ = window.jQuery = require("jquery");
 var io = require("socket.io-client");
 var client = require("./src/game-client");
-var config = require("./config.json");
 
 function run(flag) {
 	client.renderer = flag ? require("./src/mode/god") : require("./src/mode/player");
