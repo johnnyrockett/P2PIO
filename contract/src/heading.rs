@@ -20,6 +20,6 @@ impl From<i64> for PlayerHeading {
 
 impl PlayerHeading {
     pub fn as_i64(&self) -> i64{
-        ((*self as u8) as i64)
+        (*self as u8) as i64
     }
 }
