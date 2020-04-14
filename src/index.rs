@@ -1,0 +1,5 @@
+pub const START_TIME_INDEX: i32 = 0;
+pub const PLAYER_X_MAPPING_INDEX: i32 = 1;
+pub const PLAYER_Y_MAPPING_INDEX: i32 = 2;
+pub const PLAYER_HEADING_MAPPING_INDEX: i32 = 3;
+pub const PLAYER_TICK_MAPPING_INDEX: i32 = 4;
