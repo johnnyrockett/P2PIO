@@ -52,6 +52,17 @@ impl P2PIOContract {
         y
     }
 
+    pub fn get_player_heading(&self, id: i64) -> i64 {
+        let player = Player::load(id);
+        player.get_heading().into()
+    }
+
+    pub fn apply_input(&mut self, heading: i64) {
+        let now_tick = self.get_current_game_tick();
+        let mut player = Player::load(api_get_sender_address());
+        player.apply_input(heading.into(), now_tick);
+    }
+
     pub fn get_current_game_tick(&self) -> i64 {
         let start_time = self.get_start_time();
         let now_time = api_get_timestamp();

@@ -18,6 +18,12 @@ impl From<i64> for PlayerHeading {
     }
 }
 
+impl From<PlayerHeading> for i64 {
+    fn from(value: PlayerHeading) -> Self {
+        value.as_i64()
+    }
+}
+
 impl PlayerHeading {
     pub fn as_i64(&self) -> i64{
         (*self as u8) as i64

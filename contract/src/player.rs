@@ -62,6 +62,16 @@ impl Player {
         (x, y)
     }
 
+    pub fn get_heading(&self) -> PlayerHeading {
+        PlayerHeading::from(self.heading_mapping.get(self.id))
+    }
+
+    pub fn apply_input(&mut self, heading: PlayerHeading, now_tick: i64) {
+        let (x, y) = self.get_position(now_tick);
+        self.set_position(x, y, now_tick);
+        self.set_heading(heading);
+    }
+
     fn set_position(&mut self, x: i64, y: i64, tick: i64) {
         self.x_mapping.set(self.id, x);
         self.y_mapping.set(self.id, y);
@@ -70,10 +80,6 @@ impl Player {
 
     fn set_heading(&mut self, heading: PlayerHeading) {
         self.heading_mapping.set(self.id, heading.as_i64());
-    }
-
-    fn get_heading(&self) -> PlayerHeading {
-        PlayerHeading::from(self.heading_mapping.get(self.id))
     }
 }
 
