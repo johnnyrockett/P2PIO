@@ -1,0 +1,3 @@
+[submodule "rustdag"]
+	path = rustdag
+	url = git@gitlab.com:Perseus101/rustdag.git
