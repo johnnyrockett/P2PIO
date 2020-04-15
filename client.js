@@ -22,6 +22,8 @@ var io = require("socket.io-client");
 var client = require("./src/game-client");
 
 function run(flag) {
+    var contactAddress = $("#contactAddress").val();
+    console.log(contactAddress);
 	client.renderer = flag ? require("./src/mode/god") : require("./src/mode/player");
 	client.connectGame("//" + location.host, $("#name").val(), (success, msg) => {
 		if (success) {
