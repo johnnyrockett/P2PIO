@@ -6,15 +6,22 @@ const rust = import('./pkg');
 rust
   .then(m => {
     m.init();
-    return new m.BlockDAG("http://localhost:8090");
+    return new m.Context("http://locahost:8090", "1939602054144605312");
   })
   .then(main)
   .catch(console.error);
 
 
-async function main(dag) {
-  let transaction = await dag.load_tip();
-  console.log(transaction);
+async function main(ctx) {
+  let address = ctx.get_address();
+	console.log("Address: ", address);
+
+	await ctx.spawn_player(0, 0); //half way between min and max of u32
+
+	await ctx.apply_heading(1); //half way between min and max of u32
+
+	let player_location = await ctx.get_player(address); //half way between min and max of u32
+	console.log("Current location ", player_location);
 }
 
 window.$ = window.jQuery = require("jquery");
