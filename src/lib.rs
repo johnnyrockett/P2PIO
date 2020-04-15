@@ -5,9 +5,9 @@ use wasm_bindgen_futures::future_to_promise;
 use rustdag_lib::dag::contract::ContractValue;
 use rustdag_lib::security::keys::eddsa::{get_address, get_public_key, new_key_pair, EdDSAKeyPair};
 
-use rustdag_wasm::remote_blockdag::RemoteBlockDAG;
+use rustdag_wasm::blockdag::BlockDAG;
 
-use std::{cell::RefCell, panic, rc::Rc};
+use std::{panic, rc::Rc};
 
 use log::info;
 
@@ -24,7 +24,7 @@ pub fn init() -> Result<(), JsValue> {
 
 #[wasm_bindgen]
 pub struct Context {
-    blockdag: Rc<RefCell<RemoteBlockDAG>>,
+    blockdag: BlockDAG,
     keypair: Rc<EdDSAKeyPair>,
     contract_address: u64,
 }
@@ -34,10 +34,18 @@ impl Context {
     #[wasm_bindgen(constructor)]
     pub fn new(url: String, contract_address: String) -> Self {
         Context {
-            blockdag: Rc::from(RefCell::from(RemoteBlockDAG::new(url))),
+            blockdag: BlockDAG::new(url),
             keypair: Rc::from(new_key_pair()),
             contract_address: contract_address.parse().expect("Failed to parse contract address."),
         }
+    }
+
+    pub fn tips_sync(&self) -> Promise {
+        let blockdag = self.blockdag.clone();
+        future_to_promise(async move {
+            BlockDAG::tips_sync(blockdag).await?;
+            Ok(0.into())
+        })
     }
 
     pub fn get_address(&self) -> String {
@@ -45,15 +53,16 @@ impl Context {
     }
 
     pub fn spawn_player(&self, x: i32, y: i32) -> Promise {
-        let blockdag = self.blockdag.clone();
+        let inner = self.blockdag.clone_inner();
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
 
+        //Convert our signed numbers centered around (0, 0) to unsigned u64 centered around (u32::MAX, u32::MAX)
         let x = (i64::from(x) + i64::from(u32::MAX)) as u64;
         let y = (i64::from(y) + i64::from(u32::MAX)) as u64;
 
         future_to_promise(async move {
-            blockdag
+            inner
                 .borrow_mut()
                 .execute_contract(
                     &keypair,
@@ -68,12 +77,12 @@ impl Context {
 
     pub fn get_player(&self, id: String) -> Promise {
         let id = id.parse().expect("Failed to parse id.");
-        let blockdag = self.blockdag.clone();
+        let inner = self.blockdag.clone_inner();
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
 
         future_to_promise(async move {
-            let x = blockdag
+            let x = inner
                 .borrow_mut()
                 .execute_contract(
                     &keypair,
@@ -84,7 +93,7 @@ impl Context {
                 .await?
                 .expect("Should return a value");
 
-            let y = blockdag
+            let y = inner
                 .borrow_mut()
                 .execute_contract(
                     &keypair,
@@ -95,12 +104,12 @@ impl Context {
                 .await?
                 .expect("Should return a value");
 
-            let heading = blockdag
+            let heading = inner
                 .borrow_mut()
                 .execute_contract(
                     &keypair,
                     contract_address,
-                    "get_heading",
+                    "get_player_heading",
                     &[ContractValue::U64(id)],
                 )
                 .await?
@@ -111,18 +120,18 @@ impl Context {
     }
 
     pub fn apply_input(&self, heading: u32) -> Promise {
-        let blockdag = self.blockdag.clone();
+        let inner = self.blockdag.clone_inner();
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
 
         future_to_promise(async move {
-            blockdag
+            inner
                 .borrow_mut()
                 .execute_contract(
                     &keypair,
                     contract_address,
                     "apply_input",
-                    &[ContractValue::U32(heading)],
+                    &[ContractValue::U64(heading.into())],
                 )
                 .await?;
             Ok(1.into())
@@ -140,11 +149,12 @@ pub struct PlayerData {
 impl PlayerData {
     pub fn new(x: ContractValue, y: ContractValue, heading: ContractValue) -> Self {
         match (x, y, heading) {
-            (ContractValue::U64(x), ContractValue::U64(y), ContractValue::U32(heading)) => {
+            (ContractValue::U64(x), ContractValue::U64(y), ContractValue::U64(heading)) => {
+                //Convert our unsigned u64 centered around (u32::MAX, u32::MAX) to signed numbers centered around (0, 0)
                 let x = (i128::from(x) - i128::from(u32::MAX)) as i32;
                 let y = (i128::from(y) - i128::from(u32::MAX)) as i32;
 
-                PlayerData { x, y, heading }
+                PlayerData { x, y, heading: heading as u32 }
             }
             _ => panic!("Unexpected return types from contract."),
         }

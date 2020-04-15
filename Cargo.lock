@@ -639,6 +639,7 @@ dependencies = [
  "ed25519-dalek",
  "err-derive",
  "flate2",
+ "log",
  "ordered-float",
  "rand 0.7.3",
  "serde",
