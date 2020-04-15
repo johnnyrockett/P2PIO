@@ -61,7 +61,8 @@ function connectGame(url, name, callback, flag) {
 		//Initialize game
 		//TODO: display data.gameid --- game id #
 		frame = data.frame;
-		reset();
+        reset();
+        console.log("Reset game");
 		//Load players
 		data.players.forEach(p => {
 			var pl = new core.Player(grid, p);
@@ -86,7 +87,10 @@ function connectGame(url, name, callback, flag) {
 			requesting = -1;
 			while (frameCache.length > frame - minFrame) processFrame(frameCache[frame - minFrame]);
 			frameCache = [];
-		}
+        }
+        setInterval(() => {
+            tick();
+        }, 1000 / 60);
 	});
 	socket.on("notifyFrame", processFrame);
 	socket.on("dead", () => {
@@ -194,10 +198,10 @@ function reverseFrame(data) {
 }
 
 function processFrame(data) {
-    if (processingFrame) {
-        console.log('Missed Frame');
-    }
-    processingFrame = true;
+    // if (processingFrame) {
+    //     console.log('Missed Frame');
+    // }
+    // processingFrame = true;
     // console.log(data);
 	// if (timeout != undefined) clearTimeout(timeout);
 	if (requesting !== -1 && requesting < data.frame) {
@@ -208,23 +212,24 @@ function processFrame(data) {
         frameCache.push(data);
     }
 	else if (data.frame - 1 < frame) {
-        if (frame - data.frame - 1 > frameBufferSize) {
-            console.error("Frame rewrite no longer in history.");
-            // console.error("Frames don't match up!");
-            // socket.emit("requestFrame"); //Restore data
-            // requesting = data.frame;
-            // frameCache.push(data);
-            return;
-        }
-        console.log(players[0].posX);
-        for (var i=0; i < frame - data.frame; i++) {
-            bufferIndex--;
-            if (bufferIndex < 0)
-                bufferIndex += frameBufferSize;
-            reverseFrame(frameBuffer[bufferIndex]);
-        }
-        console.log(players[0].posX);
-        frame = data.frame;
+        // if (frame - data.frame - 1 > frameBufferSize) {
+        //     console.error("Frame rewrite no longer in history.");
+        //     // console.error("Frames don't match up!");
+        //     // socket.emit("requestFrame"); //Restore data
+        //     // requesting = data.frame;
+        //     // frameCache.push(data);
+        //     return;
+        // }
+        // console.log(players[0].posX);
+        // for (var i=0; i < frame - data.frame; i++) {
+        //     bufferIndex--;
+        //     if (bufferIndex < 0)
+        //         bufferIndex += frameBufferSize;
+        //     reverseFrame(frameBuffer[bufferIndex]);
+        // }
+        // console.log(players[0].posX);
+        // frame = data.frame;
+        console.log(data.frame + " given. Expecting " +frame );
         return;
     }
     var playerStats = {};
@@ -262,6 +267,7 @@ function processFrame(data) {
 	}
 	var found = new Array(players.length);
 	data.moves.forEach((val, i) => {
+        console.log(val);
 		var player = allPlayers[val.num];
 		if (!player) return;
 		if (val.left) {
@@ -291,7 +297,7 @@ function processFrame(data) {
 	// 	console.warn("Server has timed-out. Disconnecting.");
 	// 	socket.disconnect();
     // }, 3000);
-    processingFrame = false;
+    // processingFrame = false;
 }
 
 function paintLoop() {
@@ -344,6 +350,21 @@ function update() {
 	});
 	invokeRenderer("update", [frame]);
 }
+
+function tick() {
+    processFrame({
+        "frame": frame+1,
+        "moves": [
+            {
+                "num": 0,
+                "left": false,
+                "heading": 0
+            }
+        ]
+    });
+    frame++;
+}
+
 //Export stuff
 [connectGame, changeHeading, getUser, getPlayers, getOthers, disconnect].forEach(f => {
 	exports[f.name] = f;

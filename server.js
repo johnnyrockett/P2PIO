@@ -49,9 +49,9 @@ io.on("connection", socket => {
 		if (data.god && game.addGod(socket)) {
 			fn(true);
 			return;
-		}
+        }
 		if (data.name && data.name.length > 32) fn(false, "Your name is too long!");
-		else if (!game.addPlayer(socket, data.name)) fn(false, "There're too many platers!");
+		else if (!game.addPlayer(socket, data.name)) fn(false, "There're too many players!");
 		else fn(true);
 	});
 	socket.on("pings", (fn) => {
@@ -113,7 +113,7 @@ var takeInput = function () {
   });
 };
 
-takeInput();
+// takeInput();
 
 // setInterval(() => {
 // 	game.tickFrame();

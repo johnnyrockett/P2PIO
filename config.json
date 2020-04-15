@@ -1,7 +1,7 @@
 {
 	"dev": true,
 	"port": 5050,
-	"bots": 5,
+	"bots": 0,
 	"consts": {
 		"GRID_COUNT": 100,
 		"CELL_WIDTH": 40,

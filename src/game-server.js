@@ -52,19 +52,27 @@ function Game(id) {
 		newPlayers.push(p);
 		nextInd++;
 		core.initPlayer(grid, p);
-		if (p.name.indexOf("[BOT]") == -1) console.log(`[${new Date()}] ${p.name || "Unnamed"} (${p.num}) joined.`);
-		client.on("requestFrame", () => {
-			if (p.frame === frame) return;
-			p.frame = frame; //Limit number of requests per frame (One per frame)
-			var splayers = players.map(val => val.serialData());
-			client.emit("game", {
-				"num": p.num,
-				"gameid": id,
-				"frame": frame,
-				"players": splayers,
-				"grid": gridSerialData(grid, players)
-			});
-		});
+        if (p.name.indexOf("[BOT]") == -1) console.log(`[${new Date()}] ${p.name || "Unnamed"} (${p.num}) joined.`);
+        var splayers = players.map(val => val.serialData());
+        client.emit("game", {
+            "num": p.num,
+            "gameid": id,
+            "frame": frame,
+            "players": splayers,
+            "grid": gridSerialData(grid, players),
+        });
+		// client.on("requestFrame", () => {
+		// 	if (p.frame === frame) return;
+		// 	p.frame = frame; //Limit number of requests per frame (One per frame)
+		// 	var splayers = players.map(val => val.serialData());
+		// 	client.emit("game", {
+		// 		"num": p.num,
+		// 		"gameid": id,
+		// 		"frame": frame,
+		// 		"players": splayers,
+		// 		"grid": gridSerialData(grid, players)
+		// 	});
+		// });
 		client.on("frame", (data, errorHan) => {
 			if (typeof data === "function") {
 				errorHan(false, "No data supplied.");

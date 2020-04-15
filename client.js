@@ -33,7 +33,7 @@ function run(flag) {
 		else {
 			$("#error").text(msg);
 		}
-	}, flag);
+    }, flag);
 }
 
 $(document).ready(() => {
