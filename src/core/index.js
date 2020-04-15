@@ -81,7 +81,8 @@ exports.updateFrame = (grid, players, dead, notifyKill) => {
 	tmp = tmp.filter((val, i) => {
 		if (removing[i]) {
 			adead.push(val);
-			val.die();
+            val.die();
+            console.log('Dead from colliding');
 		}
 		return !removing[i];
 	});

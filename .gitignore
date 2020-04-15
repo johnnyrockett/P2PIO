@@ -1,3 +1,7 @@
+/target
+*.bundle.js
+*.module.wasm
+
 # Logs
 logs
 *.log

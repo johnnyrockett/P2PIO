@@ -1,3 +1,13 @@
+// This is where the Game object type exists
+// Here, globals like the list of players are kept
+// Fun fact, if the String "BOT" exists somewhere in your name, your actions will not be logged.
+// requestFrame -> emits the respective player's frame object
+// verify -> verifies the frame that the client computed by making sure that the frame id was incremented
+//  and that the player's position is in a believable place.
+// frame -> basically how a client tells the server its new heading
+// disconnect -> p.die() (✖╭╮✖)
+// A considerable number of little utility functions live at the end of this file
+
 var core = require("./core");
 var { consts } = require("../config.json");
 
@@ -17,7 +27,12 @@ function Game(id) {
 			if (filled === consts.GRID_COUNT * consts.GRID_COUNT) console.log(`[${new Date()}] FULL GAME`);
 		}
 	});
-	this.id = id;
+    this.id = id;
+
+    this.tickTimeSize = 1000;
+    this.tickTimes = new Array(this.tickTimeSize);
+    this.tickTimeCount = 0;
+
 	this.addPlayer = (client, name) => {
 		if (players.length >= consts.MAX_PLAYERS) return false;
 		var start = findEmpty(grid);
@@ -137,8 +152,20 @@ function Game(id) {
 		}
 		resp(true, false);
 	}
-
+    var lastLoopTime = new Date();
 	function tick() {
+        var thisLoopTime = new Date();
+        this.tickTimes[this.tickTimeCount] = thisLoopTime - lastLoopTime;
+        this.tickTimeCount++;
+        if (this.tickTimeCount == this.tickTimeSize) {
+            this.tickTimeCount = 0;
+            var total = 0;
+            for (var i=0; i<this.tickTimeSize; i++) {
+                total += this.tickTimes[i];
+            }
+            console.log(1000/(total/this.tickTimeSize) + ' fps');
+        }
+        lastLoopTime = thisLoopTime;
 		//TODO: notify those players that this server automatically drops out
 		var splayers = players.map(val => val.serialData());
 		var snews = newPlayers.map(val => {
@@ -177,9 +204,25 @@ function Game(id) {
 			g.client.emit("notifyFrame", data);
 		}
 		frame++;
-		pushPlayerLocations();
+        pushPlayerLocations();
 	}
-	this.tickFrame = tick;
+    this.tickFrame = tick;
+
+    function reverseTick(tickCount) {
+		// update();
+		var data = {
+			frame: frame-tickCount
+		};
+		for (var p of players) {
+			p.client.emit("notifyFrame", data);
+		}
+		for (var g of gods) {
+			g.client.emit("notifyFrame", data);
+        }
+        frame = frame-tickCount;
+		pushPlayerLocations();
+    }
+    this.reverseTickFrame = reverseTick;
 
 	function update() {
 		var dead = [];

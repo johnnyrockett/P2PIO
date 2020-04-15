@@ -291,11 +291,11 @@ function Player(grid, sdata) {
 	var data = {};
 
 	//Parameters
-	data.num = sdata.num;
-	data.name = sdata.name || "Player " + (data.num + 1);
-	data.grid = grid;
-	data.posX = sdata.posX;
-	data.posY = sdata.posY;
+	data.num = sdata.num; // player id
+	data.name = sdata.name || "Player " + (data.num + 1); // player name
+	data.grid = grid; // their own copy of who owns what territory?
+	data.posX = sdata.posX; // x coord
+	data.posY = sdata.posY; // y coord
 	this.heading = data.currentHeading = sdata.currentHeading; //0 is up, 1 is right, 2 is down, 3 is left
 	data.waitLag = sdata.waitLag || 0;
 	data.dead = false;
@@ -319,7 +319,8 @@ function Player(grid, sdata) {
 		data.tail.reposition(calcRow(data), calcCol(data));
 	}
 
-	//Instance methods
+    //Instance methods
+    this.reConfigure = reConfigure.bind(data);
 	this.move = move.bind(this, data);
 	this.die = () => { data.dead = true; };
 	this.serialData = function() {
@@ -383,6 +384,13 @@ Player.prototype.render = function(ctx, fade) {
 	ctx.fillText(this.name, this.posX + consts.CELL_WIDTH / 2, this.posY + yoff);
 };
 
+function reConfigure(x, y, lag, heading) {
+    this.posX = x;
+    this.posY = y;
+    this.waitLag = lag;
+    this.heading = this.currentHeading = heading;
+}
+
 function move(data) {
 	if (data.waitLag < consts.NEW_PLAYER_LAG) { //Wait for a second at least
 		data.waitLag++;
@@ -411,7 +419,31 @@ function move(data) {
 		this.tail.reposition(row, col);
 	}
 	//If we are completely in a new cell (not in our safe zone), we add to the tail
-	else if (this.posX % consts.CELL_WIDTH === 0 && this.posY % consts.CELL_WIDTH === 0) this.tail.addTail(heading);
+    else if (this.posX % consts.CELL_WIDTH === 0 && this.posY % consts.CELL_WIDTH === 0) this.tail.addTail(heading);
+}
+
+function moveInverse(oldData, freshData) {
+    //Move to new position
+    var { heading } = this;
+    switch (heading) {
+		case 0: data.posY += consts.SPEED; break; //UP
+		case 1: data.posX -= consts.SPEED; break; //RIGHT
+		case 2: data.posY -= consts.SPEED; break; //DOWN
+		case 3: data.posX += consts.SPEED; break; //LEFT
+	}
+    heading = oldData.currentHeading;
+
+	//Check for out of bounds
+	var { row, col } = this;
+	//Update tail position
+	if (data.grid.get(row, col) === this) { // If the row and column we are on is already our territory
+		//Safe zone!
+		this.tail.fillTail(); // collect the loop created by the tail as player territory
+		this.tail.reposition(row, col);
+	}
+    //If we are completely in a new cell (not in our safe zone), we add to the tail
+    // so posX and posY are relative positions to where it used to be? I should see where they are set
+    else if (this.posX % consts.CELL_WIDTH === 0 && this.posY % consts.CELL_WIDTH === 0) this.tail.addTail(heading);
 }
 
 module.exports = Player;

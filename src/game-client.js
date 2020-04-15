@@ -5,7 +5,7 @@ var running = false;
 var user, socket, frame;
 var players, allPlayers;
 var kills;
-var timeout = undefined;
+// var timeout = undefined;
 var dirty = false;
 var deadFrames = 0;
 var requesting = -1; //Frame that we are requesting at
@@ -14,6 +14,12 @@ var allowAnimation = true;
 var grid = new core.Grid(consts.GRID_COUNT, (row, col, before, after) => {
 	invokeRenderer("updateGrid", [row, col, before, after]);
 });
+
+var frameBufferSize = 60*4;
+var frameBuffer = new Array(frameBufferSize);
+var bufferIndex = 0;
+
+var processingFrame = false;
 
 var mimiRequestAnimationFrame;
 try {
@@ -51,7 +57,7 @@ function connectGame(url, name, callback, flag) {
 		console.info("Connected to server.");
 	});
 	socket.on("game", data => {
-		if (timeout != undefined) clearTimeout(timeout);
+		// if (timeout != undefined) clearTimeout(timeout);
 		//Initialize game
 		//TODO: display data.gameid --- game id #
 		frame = data.frame;
@@ -84,13 +90,14 @@ function connectGame(url, name, callback, flag) {
 	});
 	socket.on("notifyFrame", processFrame);
 	socket.on("dead", () => {
-		socket.disconnect(); //In case we didn"t get the disconnect call
+		socket.disconnect(); //In case we didn't get the disconnect call
 	});
 	socket.on("disconnect", () => {
 		console.info("Server has disconnected. Creating new game.");
 		socket.disconnect();
 		if (!user) return;
-		user.die();
+        user.die();
+        console.log("Dead through server disconnecting.");
 		dirty = true;
 		paintLoop();
 		running = false;
@@ -160,20 +167,91 @@ function invokeRenderer(name, args) {
 	if (renderer && typeof renderer[name] === "function") renderer[name].apply(exports, args);
 }
 
+function reverseFrame(data) {
+    // Object.keys(allPlayers).forEach(function(playerId) {
+    //     if (playerId in data.playerStats) {
+    //         if (playerId === 0)
+    //             console.log(allPlayers[playerId].posX);
+    //         allPlayers[playerId].posX = data.playerStats[playerId][0];
+    //         allPlayers[playerId].posY = data.playerStats[playerId][1];
+    //         allPlayers[playerId].waitLag = data.playerStats[playerId][2];
+    //         allPlayers[playerId].heading = data.playerStats[playerId][3];
+    //     }
+    // });
+    for (var i=0; i<players.length; i++) {
+        var playerId = players[i].num;
+        if (data.playerStats[playerId] !== undefined) {
+            var stats = data.playerStats[playerId];
+            players[i].reConfigure(stats[0], stats[1], stats[2], stats[3]);
+        } else {
+            console.log('' + playerId + ' was undefined');
+        }
+    }
+    // console.log('reversed frame to ' + data.frame.frame);
+    invokeRenderer("update", [frame]);
+    dirty = true;
+    mimiRequestAnimationFrame(paintLoop);
+}
+
 function processFrame(data) {
-	if (timeout != undefined) clearTimeout(timeout);
+    if (processingFrame) {
+        console.log('Missed Frame');
+    }
+    processingFrame = true;
+    // console.log(data);
+	// if (timeout != undefined) clearTimeout(timeout);
 	if (requesting !== -1 && requesting < data.frame) {
 		frameCache.push(data);
 		return;
-	}
-	if (data.frame - 1 !== frame) {
-		console.error("Frames don't match up!");
-		socket.emit("requestFrame"); //Restore data
-		requesting = data.frame;
-		frameCache.push(data);
-		return;
-	}
-	frame++;
+    }
+    if (data.frame - 1 > frame) {
+        frameCache.push(data);
+    }
+	else if (data.frame - 1 < frame) {
+        if (frame - data.frame - 1 > frameBufferSize) {
+            console.error("Frame rewrite no longer in history.");
+            // console.error("Frames don't match up!");
+            // socket.emit("requestFrame"); //Restore data
+            // requesting = data.frame;
+            // frameCache.push(data);
+            return;
+        }
+        console.log(players[0].posX);
+        for (var i=0; i < frame - data.frame; i++) {
+            bufferIndex--;
+            if (bufferIndex < 0)
+                bufferIndex += frameBufferSize;
+            reverseFrame(frameBuffer[bufferIndex]);
+        }
+        console.log(players[0].posX);
+        frame = data.frame;
+        return;
+    }
+    var playerStats = {};
+	for (var i = 0; i < players.length; i++) {
+		var p = players[i];
+		playerStats[p.num] = [p.posX, p.posY, p.waitLag];
+    }
+    if (data.moves != undefined) {
+        for (var i=0; i < data.moves.length; i++) {
+            var move = data.moves[i];
+
+            if (move.num in playerStats)
+                playerStats[move.num].push(move.heading);
+        }
+    } else {
+        console.log(data);
+    }
+    var frameState = {
+        playerStats: playerStats,
+        frame: data
+    };
+    frameBuffer[bufferIndex] = frameState;
+    bufferIndex = (bufferIndex + 1) % frameBufferSize
+    frame++;
+    if (frame === 99) {
+        console.log(frameBuffer);
+    }
 	if (data.newPlayers) {
 		data.newPlayers.forEach(p => {
 			if (user && p.num === user.num) return;
@@ -186,7 +264,10 @@ function processFrame(data) {
 	data.moves.forEach((val, i) => {
 		var player = allPlayers[val.num];
 		if (!player) return;
-		if (val.left) player.die();
+		if (val.left) {
+            player.die();
+            console.log("Dead through leaving game")
+        }
 		found[i] = true;
 		player.heading = val.heading;
 	});
@@ -194,21 +275,23 @@ function processFrame(data) {
 		//Implicitly leaving game
 		if (!found[i]) {
 			var player = players[i];
-			player && player.die();
+            player && player.die();
+            console.log("Dead through implicitly leaving game")
 		}
 	}
 	update();
-	var locs = {};
-	for (var i = 0; i < players.length; i++) {
-		var p = players[i];
-		locs[p.num] = [p.posX, p.posY, p.waitLag];
-	}
+	// var locs = {};
+	// for (var i = 0; i < players.length; i++) {
+	// 	var p = players[i];
+	// 	locs[p.num] = [p.posX, p.posY, p.waitLag];
+	// }
 	dirty = true;
 	mimiRequestAnimationFrame(paintLoop);
-	timeout = setTimeout(() => {
-		console.warn("Server has timed-out. Disconnecting.");
-		socket.disconnect();
-	}, 3000);
+	// timeout = setTimeout(() => {
+	// 	console.warn("Server has timed-out. Disconnecting.");
+	// 	socket.disconnect();
+    // }, 3000);
+    processingFrame = false;
 }
 
 function paintLoop() {
@@ -216,7 +299,7 @@ function paintLoop() {
 	invokeRenderer("paint", []);
 	dirty = false;
 	if (user && user.dead) {
-		if (timeout) clearTimeout(timeout);
+		// if (timeout) clearTimeout(timeout);
 		if (deadFrames === 60) { //One second of frame
 			var before = allowAnimation;
 			allowAnimation = false;

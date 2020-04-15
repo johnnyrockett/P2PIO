@@ -1,37 +1,39 @@
 {
-	"name": "paper-io",
-	"version": "0.0.1",
-	"description": "An multiplayer-IO type game (cloned from Paper-IO)",
-	"main": "server.js",
-	"scripts": {
-		"build": "browserify client.js | terser > public/js/bundle.js",
-		"build-dev": "watchify client.js -o public/js/bundle.js"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/stevenjoezhang/paper.io.git"
-	},
-	"keywords": [
-		"Paper-IO",
-		"IO",
-		"Game"
-	],
-	"author": "Mimi <stevenjoezhang@gmail.com> https://zhangshuqiao.org",
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/stevenjoezhang/paper.io/issues"
-	},
-	"homepage": "https://github.com/stevenjoezhang/paper.io",
-	"dependencies": {
-		"chalk": "^3.0.0",
-		"express": "^4.17.1",
-		"jquery": "^3.4.1",
-		"socket.io": "^2.3.0",
-		"socket.io-client": "^2.3.0"
-	},
-	"devDependencies": {
-		"browserify": "^16.5.0",
-		"terser": "^4.6.3",
-		"watchify": "^3.11.1"
-	}
+  "name": "paper-io",
+  "version": "0.0.1",
+  "description": "An multiplayer-IO type game (cloned from Paper-IO)",
+  "main": "server.js",
+  "scripts": {
+    "build": "webpack",
+    "build-dev": "webpack-dev-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stevenjoezhang/paper.io.git"
+  },
+  "keywords": [
+    "Paper-IO",
+    "IO",
+    "Game"
+  ],
+  "author": "Mimi <stevenjoezhang@gmail.com> https://zhangshuqiao.org",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stevenjoezhang/paper.io/issues"
+  },
+  "homepage": "https://github.com/stevenjoezhang/paper.io",
+  "dependencies": {
+    "chalk": "^3.0.0",
+    "express": "^4.17.1",
+    "jquery": "^3.4.1",
+    "socket.io": "^2.3.0",
+    "socket.io-client": "^2.3.0"
+  },
+  "devDependencies": {
+    "@wasm-tool/wasm-pack-plugin": "1.0.1",
+    "text-encoding": "^0.7.0",
+    "webpack": "^4.29.4",
+    "webpack-cli": "^3.1.1",
+    "webpack-dev-server": "^3.1.0"
+  }
 }

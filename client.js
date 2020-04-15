@@ -1,3 +1,22 @@
+// Houses logic specific to the client
+// Client version of processFrame is most notable
+// Basically everything that allows the client's understanding of the game state to be up to date
+
+const rust = import('./pkg');
+rust
+  .then(m => {
+    m.init();
+    return new m.BlockDAG("http://localhost:8090");
+  })
+  .then(main)
+  .catch(console.error);
+
+
+async function main(dag) {
+  let transaction = await dag.load_tip();
+  console.log(transaction);
+}
+
 window.$ = window.jQuery = require("jquery");
 var io = require("socket.io-client");
 var client = require("./src/game-client");
