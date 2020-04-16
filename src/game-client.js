@@ -20,6 +20,15 @@ var frameBuffer = new Array(frameBufferSize);
 var bufferIndex = 0;
 
 var processingFrame = false;
+var ctx = undefined
+var address = undefined
+
+var lastFrameHeading = 3;
+
+function giveContext(context, contextAddress) {
+    ctx = context
+    address = contextAddress
+}
 
 var mimiRequestAnimationFrame;
 try {
@@ -88,11 +97,13 @@ function connectGame(url, name, callback, flag) {
 			while (frameCache.length > frame - minFrame) processFrame(frameCache[frame - minFrame]);
 			frameCache = [];
         }
-        setInterval(() => {
-            tick();
-        }, 1000 / 60);
+        setTimeout(tick, 1000);
+        // setInterval(() => {
+        //     console.log("voldemort with a time bomb")
+        //     tick();
+        // }, 1000 / 15);
 	});
-	socket.on("notifyFrame", processFrame);
+	// socket.on("notifyFrame", processFrame);
 	socket.on("dead", () => {
 		socket.disconnect(); //In case we didn't get the disconnect call
 	});
@@ -123,6 +134,7 @@ function connectGame(url, name, callback, flag) {
 }
 
 function changeHeading(newHeading) {
+    lastFrameHeading = newHeading;
 	if (!user || user.dead) return;
 	if (newHeading === user.currentHeading || ((newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))) {
 		//user.heading = newHeading;
@@ -267,7 +279,7 @@ function processFrame(data) {
 	}
 	var found = new Array(players.length);
 	data.moves.forEach((val, i) => {
-        console.log(val);
+        // console.log(val);
 		var player = allPlayers[val.num];
 		if (!player) return;
 		if (val.left) {
@@ -351,22 +363,35 @@ function update() {
 	invokeRenderer("update", [frame]);
 }
 
-function tick() {
+async function tick() {
+
+
+    // Get new info
+    let player_location = await ctx.get_player(address); //half way between min and max of u32
+    let heading = player_location.heading();
+    console.log("heading: " + heading);
+    // if (newHeading === user.currentHeading || ((newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))) {
+    if (heading != lastFrameHeading) {
+        console.log("Uploading heading: " + lastFrameHeading)
+        await ctx.apply_input(lastFrameHeading);
+    }
+
     processFrame({
         "frame": frame+1,
         "moves": [
             {
                 "num": 0,
                 "left": false,
-                "heading": 0
+                "heading": heading
             }
         ]
     });
     frame++;
+    setTimeout(tick, 0);
 }
 
 //Export stuff
-[connectGame, changeHeading, getUser, getPlayers, getOthers, disconnect].forEach(f => {
+[connectGame, changeHeading, getUser, getPlayers, getOthers, disconnect, giveContext].forEach(f => {
 	exports[f.name] = f;
 });
 Object.defineProperties(exports, {

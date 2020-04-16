@@ -160,3 +160,20 @@ impl PlayerData {
         }
     }
 }
+
+
+#[wasm_bindgen]
+impl PlayerData {
+
+    pub fn x(&self) -> JsValue {
+        self.x.into()
+    }
+
+    pub fn y(&self) -> JsValue {
+        self.y.into()
+    }
+
+    pub fn heading(&self) -> JsValue {
+        self.heading.into()
+    }
+}
