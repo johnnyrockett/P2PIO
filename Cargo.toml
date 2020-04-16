@@ -12,9 +12,16 @@ wasm-bindgen = "0.2.59"
 console_error_panic_hook = "0.1.6"
 console_log = "0.1.2"
 log = "0.4"
+js-sys = "0.3.37"
+wasm-bindgen-futures = "0.4.9"
 
 [dependencies.rustdag-wasm]
 path = "p2pio-contract/rustdag/bindings/wasm/"
+
+[dependencies.rustdag-lib]
+path = "p2pio-contract/rustdag/lib/"
+default-features = false
+features = ["wasm-bind"]
 
 # [dependencies.p2pio-contract]
 # path = "p2pio-contract/contract/"

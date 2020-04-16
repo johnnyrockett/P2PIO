@@ -417,9 +417,12 @@ version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "console_log",
+ "js-sys",
  "log",
+ "rustdag-lib",
  "rustdag-wasm",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
 ]
 
 [[package]]
@@ -636,6 +639,7 @@ dependencies = [
  "ed25519-dalek",
  "err-derive",
  "flate2",
+ "log",
  "ordered-float",
  "rand 0.7.3",
  "serde",
