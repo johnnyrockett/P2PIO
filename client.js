@@ -6,7 +6,11 @@ const rust = import('./pkg');
 rust
   .then(m => {
     m.init();
-    return new m.Context("http://localhost:8090", "6728791101120789368");
+    var urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has("id")) {
+        throw "Please add ?id=... where ... is your contract id, to the end of your url.";
+    }
+    return new m.Context("http://localhost:8090", urlParams.get("id"));
   })
   .then(main)
   .catch(console.error);

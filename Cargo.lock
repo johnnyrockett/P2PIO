@@ -653,6 +653,7 @@ dependencies = [
 name = "rustdag-wasm"
 version = "0.1.0"
 dependencies = [
+ "futures",
  "js-sys",
  "log",
  "rand 0.7.3",
