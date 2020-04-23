@@ -1,4 +1,4 @@
-use futures::lock::Mutex;
+// use futures::lock::Mutex;
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
@@ -62,7 +62,7 @@ impl Context {
         }
     }
 
-    pub fn tips_sync(self) -> Promise {
+    pub fn tips_sync(&self) -> Promise {
         let blockdag = self.blockdag.clone();
         let contract_address = self.contract_address;
         let sender = self.event_sender.clone();
@@ -183,7 +183,7 @@ impl Context {
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
 
-        self.event_queue.lock().unwrap().push(Event::input(self.get_address(), heading));
+        self.event_sender.send(Event::input(self.get_address(), heading)).expect("Failed to send in the event mpsc");
 
         future_to_promise(async move {
             inner
