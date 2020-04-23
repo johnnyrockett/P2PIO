@@ -294,6 +294,10 @@ impl Event {
         }
     }
 
+    pub fn get_id(&self) -> JsValue {
+        self.id.clone().into()
+    }
+
     pub fn get_spawn_x(&self) -> JsValue {
         if self.is_spawn() {
             self.x.into()

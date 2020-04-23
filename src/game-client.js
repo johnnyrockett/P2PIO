@@ -19,6 +19,10 @@ var frameBufferSize = 60*4;
 var frameBuffer = new Array(frameBufferSize);
 var bufferIndex = 0;
 
+var possColors = core.Color.possColors();
+
+var moves = [];
+
 var processingFrame = false;
 var rctx = undefined
 var address = undefined
@@ -61,8 +65,6 @@ function connectGame(url, name, callback, flag) {
     reset();
     console.log("Reset game");
 
-    var possColors = core.Color.possColors();
-
     // For each player on the dag, run these two lines below
     var start = findEmpty(grid);
     if (!start) return false;
@@ -71,7 +73,7 @@ function connectGame(url, name, callback, flag) {
         posY: start.row * consts.CELL_WIDTH,
         currentHeading: 1,
         name,
-        num: 0,
+        num: address,
         base: possColors.shift()
     };
     var p = new core.Player(grid, params);
@@ -83,7 +85,7 @@ function connectGame(url, name, callback, flag) {
     addPlayer(p);
     core.initPlayer(grid, p);
 
-    user = allPlayers[0];
+    user = allPlayers[address];
     //if (!user) throw new Error();
     setUser(user);
     //Load grid
@@ -420,11 +422,49 @@ async function tick() {
 
     await rctx.tips_sync();
 
-
     var events = await rctx.take_events();
     for (var i=0; i<events.length; i++) {
         if (events[i].is_input()) {
-            headingTest = await events[i].get_input_heading();
+            var id = events[i].get_id();
+            var head = await events[i].get_input_heading();
+            if (id == user.num)
+                headingTest = head;
+
+            moves[id] = {
+                "num": id,
+                "left": false,
+                "heading": head
+            }
+        } else if (events[i].is_spawn()) {
+            console.log("adding spawn");
+            var id = await events[i].get_id();
+            if (id != user.num) {
+                console.log("Really doing it");
+                var x = await events[i].get_spawn_x();
+                var y = await events[i].get_spawn_y();
+
+                var params = {
+                    posX: x,
+                    posY: y,
+                    currentHeading: 1,
+                    name: id.toString(),
+                    num: id,
+                    base: possColors.shift()
+                };
+                var p = new core.Player(grid, params);
+                // p.client = client;
+                // players.push(p);
+                // newPlayers.push(p);
+                // var pl = new core.Player(grid, p);
+                addPlayer(p);
+                core.initPlayer(grid, p);
+
+                moves[id] = {
+                    "num": id,
+                    "left": false,
+                    "heading": 1
+                }
+            }
         }
     }
 
@@ -443,15 +483,14 @@ async function tick() {
     //     await rctx.apply_input(lastFrameHeading);
     // }
 
+    var listMoves = []
+    for (var key in moves) {
+        listMoves.push(moves[key]);
+    }
+
     processFrame({
         "frame": frame+1,
-        "moves": [
-            {
-                "num": 0,
-                "left": false,
-                "heading": headingTest
-            }
-        ]
+        "moves": listMoves
     });
     frame++;
     setTimeout(tick, 0);
