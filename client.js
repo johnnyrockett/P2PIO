@@ -17,14 +17,14 @@ rust
 
 
 async function main(rctx) {
-    let address = rctx.get_address();
-	console.log("Address: ", address);
-
 	console.log("Syncing tips");
 	await rctx.tips_sync();
 
 	console.log("Spawning player");
-	await rctx.spawn_player(0, 0); //half way between min and max of u32
+    await rctx.spawn_player(0, 0); //half way between min and max of u32
+
+    let address = rctx.get_address(); //TODO should be get_str_address()
+	console.log("Address: ", address);
 
 	console.log("Applying heading");
 	await rctx.apply_input(1); //half way between min and max of u32
