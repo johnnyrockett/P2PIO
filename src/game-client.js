@@ -23,7 +23,9 @@ var processingFrame = false;
 var rctx = undefined
 var address = undefined
 
-var lastFrameHeading = 3;
+var lastFrameHeading = 1;
+
+var headingTest = 1;
 
 function giveContext(context, contextAddress) {
     rctx = context
@@ -416,15 +418,30 @@ async function tick() {
     if (user.dead)
         return
 
-    // Get new info
-    let player_location = await rctx.get_player(address); //half way between min and max of u32
-    let heading = player_location.heading();
-    console.log("heading: " + heading);
-    // if (newHeading === user.currentHeading || ((newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))) {
-    if (heading != lastFrameHeading) {
-        console.log("Uploading heading: " + lastFrameHeading)
+    await rctx.tips_sync();
+
+
+    var events = await rctx.take_events();
+    for (var i=0; i<events.length; i++) {
+        if (events[i].is_input()) {
+            headingTest = await events[i].get_input_heading();
+        }
+    }
+
+    if (headingTest != lastFrameHeading) {
         await rctx.apply_input(lastFrameHeading);
     }
+
+
+    // Get new info
+    // let player_location = await rctx.get_player(address); //half way between min and max of u32
+    // let heading = player_location.heading();
+    // console.log("heading: " + heading);
+    // if (newHeading === user.currentHeading || ((newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))) {
+    // if (heading != lastFrameHeading) {
+    //     console.log("Uploading heading: " + lastFrameHeading)
+    //     await rctx.apply_input(lastFrameHeading);
+    // }
 
     processFrame({
         "frame": frame+1,
@@ -432,7 +449,7 @@ async function tick() {
             {
                 "num": 0,
                 "left": false,
-                "heading": heading
+                "heading": headingTest
             }
         ]
     });
