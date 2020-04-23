@@ -14,6 +14,7 @@ console_log = "0.1.2"
 log = "0.4"
 js-sys = "0.3.37"
 wasm-bindgen-futures = "0.4.9"
+futures = "0.3.4"
 
 [dependencies.rustdag-wasm]
 path = "p2pio-contract/rustdag/bindings/wasm/"
