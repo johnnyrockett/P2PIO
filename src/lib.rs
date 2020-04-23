@@ -183,6 +183,8 @@ impl Context {
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
 
+        self.event_queue.lock().unwrap().push(Event::input(self.get_address(), heading));
+
         future_to_promise(async move {
             inner
                 .borrow_mut()
