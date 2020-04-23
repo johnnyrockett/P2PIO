@@ -31,9 +31,8 @@ var lastFrameHeading = 1;
 
 var headingTest = 1;
 
-function giveContext(context, contextAddress) {
+function giveContext(context) {
     rctx = context
-    address = contextAddress
 }
 
 var mimiRequestAnimationFrame;
@@ -52,7 +51,7 @@ catch (e) {
 }
 
 //Public API
-function connectGame(url, name, callback, flag) {
+async function connectGame(url, name, callback, flag) {
 	if (running) return; //Prevent multiple runs
 	running = true;
 	user = null;
@@ -68,14 +67,20 @@ function connectGame(url, name, callback, flag) {
     // For each player on the dag, run these two lines below
     var start = findEmpty(grid);
     if (!start) return false;
+    var x = start.col * consts.CELL_WIDTH;
+    var y = start.row * consts.CELL_WIDTH;
+    await rctx.spawn_player(x, y);
+    address = await rctx.get_address();
     var params = {
-        posX: start.col * consts.CELL_WIDTH,
-        posY: start.row * consts.CELL_WIDTH,
+        posX: x,
+        posY: y,
         currentHeading: 1,
         name,
         num: address,
         base: possColors.shift()
     };
+
+
     var p = new core.Player(grid, params);
     p.tmpHeading = params.currentHeading;
     // p.client = client;
@@ -86,6 +91,7 @@ function connectGame(url, name, callback, flag) {
     core.initPlayer(grid, p);
 
     user = allPlayers[address];
+    console.log(user);
     //if (!user) throw new Error();
     setUser(user);
     //Load grid
@@ -341,14 +347,14 @@ function processFrame(data) {
 		found[i] = true;
 		player.heading = val.heading;
     });
-	for (var i = 0; i < players.length; i++) {
-		//Implicitly leaving game
-		if (!found[i]) {
-			var player = players[i];
-            player && player.die();
-            console.log("Dead through implicitly leaving game")
-		}
-	}
+	// for (var i = 0; i < players.length; i++) {
+	// 	//Implicitly leaving game
+	// 	if (!found[i]) {
+	// 		var player = players[i];
+    //         player && player.die();
+    //         console.log("Dead through implicitly leaving game")
+	// 	}
+	// }
 	update();
 	// var locs = {};
 	// for (var i = 0; i < players.length; i++) {
@@ -422,6 +428,8 @@ async function tick() {
 
     await rctx.tips_sync();
 
+    var newPlayers = [];
+
     var events = await rctx.take_events();
     for (var i=0; i<events.length; i++) {
         if (events[i].is_input()) {
@@ -438,32 +446,22 @@ async function tick() {
         } else if (events[i].is_spawn()) {
             console.log("adding spawn");
             var id = await events[i].get_id();
-            if (id != user.num) {
-                console.log("Really doing it");
-                var x = await events[i].get_spawn_x();
-                var y = await events[i].get_spawn_y();
+            var x = await events[i].get_spawn_x();
+            var y = await events[i].get_spawn_y();
+            var params = {
+                posX: x,
+                posY: y,
+                currentHeading: 1,
+                name: id.toString(),
+                num: id,
+                base: possColors.shift()
+            };
+            newPlayers.push(params);
 
-                var params = {
-                    posX: x,
-                    posY: y,
-                    currentHeading: 1,
-                    name: id.toString(),
-                    num: id,
-                    base: possColors.shift()
-                };
-                var p = new core.Player(grid, params);
-                // p.client = client;
-                // players.push(p);
-                // newPlayers.push(p);
-                // var pl = new core.Player(grid, p);
-                addPlayer(p);
-                core.initPlayer(grid, p);
-
-                moves[id] = {
-                    "num": id,
-                    "left": false,
-                    "heading": 1
-                }
+            moves[id] = {
+                "num": id,
+                "left": false,
+                "heading": 1
             }
         }
     }
@@ -488,10 +486,16 @@ async function tick() {
         listMoves.push(moves[key]);
     }
 
-    processFrame({
+    var frameData = {
         "frame": frame+1,
         "moves": listMoves
-    });
+    }
+
+    if (newPlayers.length > 0)
+        frameData["newPlayers"] = newPlayers;
+
+
+    processFrame(frameData);
     frame++;
     setTimeout(tick, 0);
 }

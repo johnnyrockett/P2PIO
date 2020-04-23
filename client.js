@@ -20,25 +20,25 @@ async function main(rctx) {
 	console.log("Syncing tips");
 	await rctx.tips_sync();
 
-	console.log("Spawning player");
-    await rctx.spawn_player(0, 0); //half way between min and max of u32
+	// console.log("Spawning player");
+    // await rctx.spawn_player(0, 0); //half way between min and max of u32
 
-    let address = rctx.get_address(); //TODO should be get_str_address()
-	console.log("Address: ", address);
+    // let address = rctx.get_address(); //TODO should be get_str_address()
+	// console.log("Address: ", address);
 
-	console.log("Applying heading");
-	await rctx.apply_input(1); //half way between min and max of u32
+	// console.log("Applying heading");
+	// await rctx.apply_input(1); //half way between min and max of u32
 
-	console.log("Get player data");
-	let player_location = await rctx.get_player(address); //half way between min and max of u32
-    console.log("Current location ", player_location);
-    console.log(player_location.x());
+	// console.log("Get player data");
+	// let player_location = await rctx.get_player(address); //half way between min and max of u32
+    // console.log("Current location ", player_location);
+    // console.log(player_location.x());
 
 
     window.$ = window.jQuery = require("jquery");
     // var io = require("socket.io-client");
     var client = require("./src/game-client");
-    client.giveContext(rctx, address);
+    client.giveContext(rctx);
 
     function run(flag) {
         client.renderer = flag ? require("./src/mode/god") : require("./src/mode/player");
