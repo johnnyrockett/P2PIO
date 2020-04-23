@@ -45,6 +45,7 @@ async function main(rctx) {
     // var io = require("socket.io-client");
     var client = require("./src/game-client");
     client.giveContext(rctx);
+    setTimeout(client.syncTick, 1000);
 
     function run(flag) {
         client.renderer = flag ? require("./src/mode/god") : require("./src/mode/player");

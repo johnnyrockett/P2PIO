@@ -107,8 +107,7 @@ async function connectGame(url, name, callback, flag) {
     }
     // invokeRenderer("paint", []);
     callback(true, "");
-		setTimeout(tick, 1000);
-		setTimeout(syncTick, 1000);
+	setTimeout(tick, 1000);
 
     //Socket connection
 	// io.j = [];
@@ -544,7 +543,7 @@ function findEmpty(grid) {
 }
 
 //Export stuff
-[connectGame, changeHeading, getUser, getPlayers, getOthers, disconnect, giveContext].forEach(f => {
+[connectGame, changeHeading, getUser, getPlayers, getOthers, disconnect, giveContext, syncTick].forEach(f => {
 	exports[f.name] = f;
 });
 Object.defineProperties(exports, {
