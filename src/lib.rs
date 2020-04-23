@@ -11,11 +11,7 @@ use rustdag_wasm::blockdag::BlockDAG;
 
 use std::sync::mpsc::{channel, Receiver, Sender};
 
-use std::{
-    cell::{Ref, RefCell},
-    panic,
-    rc::Rc,
-};
+use std::{panic, rc::Rc, sync::RwLock};
 
 use log::info;
 
@@ -33,17 +29,10 @@ pub fn init() -> Result<(), JsValue> {
 #[wasm_bindgen]
 pub struct Context {
     blockdag: BlockDAG,
-    keypair: Rc<RefCell<Option<EdDSAKeyPair>>>,
+    keypair: Rc<RwLock<Option<EdDSAKeyPair>>>,
     event_sender: Sender<Event>,
     event_receiver: Receiver<Event>,
     contract_address: u64,
-}
-
-fn get_keypair(rc: &Rc<RefCell<Option<EdDSAKeyPair>>>) -> Ref<'_, EdDSAKeyPair> {
-    Ref::map(rc.borrow(), |opt| {
-        opt.as_ref()
-            .expect("Failed to call spawn_player before applying input.")
-    })
 }
 
 #[wasm_bindgen]
@@ -53,7 +42,7 @@ impl Context {
         let (send, recv) = channel();
         Context {
             blockdag: BlockDAG::new(url),
-            keypair: Rc::from(RefCell::from(None)),
+            keypair: Rc::from(RwLock::from(None)),
             event_sender: send,
             event_receiver: recv,
             contract_address: contract_address
@@ -67,43 +56,41 @@ impl Context {
         let contract_address = self.contract_address;
         let sender = self.event_sender.clone();
         future_to_promise(async move {
-            BlockDAG::tips_sync(blockdag, move |trans| {
-                match trans.get_data() {
-                    TransactionData::ExecContract {
-                        func_name,
-                        args,
-                        contract,
-                    } if *contract == contract_address => {
-                        let event = match &func_name[..] {
-                            "spawn_player" => match &args[..] {
-                                [x, y] => Some(Event::spawn(
-                                    trans.get_address().to_string(),
-                                    contract_val_to_i32(*x),
-                                    contract_val_to_i32(*y),
-                                )),
-                                _ => panic!(
-                                    "Unexpected number of arguments. Got {}, expected 2",
-                                    args.len()
-                                ),
-                            },
-                            "apply_input" => match &args[..] {
-                                [heading] => Some(Event::input(
-                                    trans.get_address().to_string(),
-                                    unwrap_contract_u64(*heading) as u32,
-                                )),
-                                _ => panic!(
-                                    "Unexpected number of arguments. Got {}, expected 2",
-                                    args.len()
-                                ),
-                            },
-                            _ => None,
-                        };
-                        if let Some(e) = event {
-                            sender.send(e).expect("Failed to send in the event mpsc");
-                        }
+            BlockDAG::tips_sync(blockdag, move |trans| match trans.get_data() {
+                TransactionData::ExecContract {
+                    func_name,
+                    args,
+                    contract,
+                } if *contract == contract_address => {
+                    let event = match &func_name[..] {
+                        "spawn_player" => match &args[..] {
+                            [x, y] => Some(Event::spawn(
+                                trans.get_address().to_string(),
+                                contract_val_to_i32(*x),
+                                contract_val_to_i32(*y),
+                            )),
+                            _ => panic!(
+                                "Unexpected number of arguments. Got {}, expected 2",
+                                args.len()
+                            ),
+                        },
+                        "apply_input" => match &args[..] {
+                            [heading] => Some(Event::input(
+                                trans.get_address().to_string(),
+                                unwrap_contract_u64(*heading) as u32,
+                            )),
+                            _ => panic!(
+                                "Unexpected number of arguments. Got {}, expected 2",
+                                args.len()
+                            ),
+                        },
+                        _ => None,
+                    };
+                    if let Some(e) = event {
+                        sender.send(e).expect("Failed to send in the event mpsc");
                     }
-                    _ => (),
                 }
+                _ => (),
             })
             .await?;
             Ok(0.into())
@@ -111,20 +98,35 @@ impl Context {
     }
 
     pub fn get_address(&self) -> String {
-        get_address(&get_public_key(&*get_keypair(&self.keypair))).to_string()
+        get_address(&get_public_key(
+            self.keypair
+                .read()
+                .expect("Failed to acquire lock")
+                .as_ref()
+                .expect("Failed to call spawn_player before applying input."),
+        ))
+        .to_string()
     }
 
     pub fn spawn_player(&self, x: i32, y: i32) -> Promise {
         let inner = self.blockdag.clone_inner();
-        self.keypair.borrow_mut().replace(new_key_pair()); // create new keypair
+        self.keypair
+            .write()
+            .expect("Failed to acquire lock.")
+            .replace(new_key_pair()); // create new keypair
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
 
         future_to_promise(async move {
             inner
-                .borrow_mut()
+                .lock()
+                .await
                 .execute_contract(
-                    &*get_keypair(&keypair),
+                    keypair
+                        .read()
+                        .expect("Failed to acquire lock")
+                        .as_ref()
+                        .expect("Failed to call spawn_player before applying input."),
                     contract_address,
                     "spawn_player",
                     &[i32_to_contract_val(x), i32_to_contract_val(y)],
@@ -142,9 +144,14 @@ impl Context {
 
         future_to_promise(async move {
             let x = inner
-                .borrow_mut()
+                .lock()
+                .await
                 .execute_contract(
-                    &*get_keypair(&keypair),
+                    keypair
+                        .read()
+                        .expect("Failed to acquire lock")
+                        .as_ref()
+                        .expect("Failed to call spawn_player before applying input."),
                     contract_address,
                     "get_player_x",
                     &[ContractValue::U64(id_num)],
@@ -153,9 +160,14 @@ impl Context {
                 .expect("Should return a value");
 
             let y = inner
-                .borrow_mut()
+                .lock()
+                .await
                 .execute_contract(
-                    &*get_keypair(&keypair),
+                    keypair
+                        .read()
+                        .expect("Failed to acquire lock")
+                        .as_ref()
+                        .expect("Failed to call spawn_player before applying input."),
                     contract_address,
                     "get_player_y",
                     &[ContractValue::U64(id_num)],
@@ -164,9 +176,14 @@ impl Context {
                 .expect("Should return a value");
 
             let heading = inner
-                .borrow_mut()
+                .lock()
+                .await
                 .execute_contract(
-                    &*get_keypair(&keypair),
+                    keypair
+                        .read()
+                        .expect("Failed to acquire lock")
+                        .as_ref()
+                        .expect("Failed to call spawn_player before applying input."),
                     contract_address,
                     "get_player_heading",
                     &[ContractValue::U64(id_num)],
@@ -183,13 +200,20 @@ impl Context {
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
 
-        self.event_sender.send(Event::input(self.get_address(), heading)).expect("Failed to send in the event mpsc");
+        self.event_sender
+            .send(Event::input(self.get_address(), heading))
+            .expect("Failed to send in the event mpsc");
 
         future_to_promise(async move {
             inner
-                .borrow_mut()
+                .lock()
+                .await
                 .execute_contract(
-                    &*get_keypair(&keypair),
+                    keypair
+                        .read()
+                        .expect("Failed to acquire lock")
+                        .as_ref()
+                        .expect("Failed to call spawn_player before applying input."),
                     contract_address,
                     "apply_input",
                     &[ContractValue::U64(heading.into())],
@@ -200,10 +224,11 @@ impl Context {
     }
 
     pub fn take_events(&self) -> JsValue {
-        self.event_receiver.try_iter()
-                .map(|e| JsValue::from(e))
-                .collect::<js_sys::Array>()
-                .into()
+        self.event_receiver
+            .try_iter()
+            .map(|e| JsValue::from(e))
+            .collect::<js_sys::Array>()
+            .into()
     }
 }
 
