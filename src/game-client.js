@@ -107,7 +107,8 @@ async function connectGame(url, name, callback, flag) {
     }
     // invokeRenderer("paint", []);
     callback(true, "");
-    setTimeout(tick, 1000);
+		setTimeout(tick, 1000);
+		setTimeout(syncTick, 1000);
 
     //Socket connection
 	// io.j = [];
@@ -421,12 +422,15 @@ function update() {
 	invokeRenderer("update", [frame]);
 }
 
+async function syncTick() {
+	await rctx.tips_sync();
+	setTimeout(syncTick, 50);
+}
+
 async function tick() {
 
     if (user.dead)
         return
-
-    await rctx.tips_sync();
 
     var newPlayers = [];
 
@@ -467,7 +471,7 @@ async function tick() {
     }
 
     if (headingTest != lastFrameHeading) {
-        await rctx.apply_input(lastFrameHeading);
+        rctx.apply_input(lastFrameHeading); //removed await
     }
 
 
