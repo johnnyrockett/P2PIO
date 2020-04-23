@@ -1,3 +1,4 @@
+use futures::lock::Mutex;
 use js_sys::Promise;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::future_to_promise;
@@ -8,11 +9,12 @@ use rustdag_lib::security::keys::eddsa::{get_address, get_public_key, new_key_pa
 
 use rustdag_wasm::blockdag::BlockDAG;
 
+use std::sync::mpsc::{channel, Receiver, Sender};
+
 use std::{
     cell::{Ref, RefCell},
     panic,
     rc::Rc,
-    sync::Mutex,
 };
 
 use log::info;
@@ -32,7 +34,8 @@ pub fn init() -> Result<(), JsValue> {
 pub struct Context {
     blockdag: BlockDAG,
     keypair: Rc<RefCell<Option<EdDSAKeyPair>>>,
-    event_queue: Rc<Mutex<Vec<Event>>>,
+    event_sender: Sender<Event>,
+    event_receiver: Receiver<Event>,
     contract_address: u64,
 }
 
@@ -47,56 +50,60 @@ fn get_keypair(rc: &Rc<RefCell<Option<EdDSAKeyPair>>>) -> Ref<'_, EdDSAKeyPair> 
 impl Context {
     #[wasm_bindgen(constructor)]
     pub fn new(url: String, contract_address: String) -> Self {
+        let (send, recv) = channel();
         Context {
             blockdag: BlockDAG::new(url),
             keypair: Rc::from(RefCell::from(None)),
-            event_queue: Rc::from(Mutex::from(Vec::new())),
+            event_sender: send,
+            event_receiver: recv,
             contract_address: contract_address
                 .parse()
                 .expect("Failed to parse contract address."),
         }
     }
 
-    pub fn tips_sync(&self) -> Promise {
+    pub fn tips_sync(self) -> Promise {
         let blockdag = self.blockdag.clone();
         let contract_address = self.contract_address;
-        let event_queue = self.event_queue.clone();
+        let sender = self.event_sender.clone();
         future_to_promise(async move {
-            BlockDAG::tips_sync(blockdag, move |trans| match trans.get_data() {
-                TransactionData::ExecContract {
-                    func_name,
-                    args,
-                    contract,
-                } if *contract == contract_address => {
-                    let event = match &func_name[..] {
-                        "spawn_player" => match &args[..] {
-                            [x, y] => Some(Event::spawn(
-                                trans.get_address().to_string(),
-                                contract_val_to_i32(*x),
-                                contract_val_to_i32(*y),
-                            )),
-                            _ => panic!(
-                                "Unexpected number of arguments. Got {}, expected 2",
-                                args.len()
-                            ),
-                        },
-                        "apply_input" => match &args[..] {
-                            [heading] => Some(Event::input(
-                                trans.get_address().to_string(),
-                                unwrap_contract_u64(*heading) as u32,
-                            )),
-                            _ => panic!(
-                                "Unexpected number of arguments. Got {}, expected 2",
-                                args.len()
-                            ),
-                        },
-                        _ => None,
-                    };
-                    if let Some(e) = event {
-                        event_queue.lock().unwrap().push(e);
+            BlockDAG::tips_sync(blockdag, move |trans| {
+                match trans.get_data() {
+                    TransactionData::ExecContract {
+                        func_name,
+                        args,
+                        contract,
+                    } if *contract == contract_address => {
+                        let event = match &func_name[..] {
+                            "spawn_player" => match &args[..] {
+                                [x, y] => Some(Event::spawn(
+                                    trans.get_address().to_string(),
+                                    contract_val_to_i32(*x),
+                                    contract_val_to_i32(*y),
+                                )),
+                                _ => panic!(
+                                    "Unexpected number of arguments. Got {}, expected 2",
+                                    args.len()
+                                ),
+                            },
+                            "apply_input" => match &args[..] {
+                                [heading] => Some(Event::input(
+                                    trans.get_address().to_string(),
+                                    unwrap_contract_u64(*heading) as u32,
+                                )),
+                                _ => panic!(
+                                    "Unexpected number of arguments. Got {}, expected 2",
+                                    args.len()
+                                ),
+                            },
+                            _ => None,
+                        };
+                        if let Some(e) = event {
+                            sender.send(e).expect("Failed to send in the event mpsc");
+                        }
                     }
+                    _ => (),
                 }
-                _ => (),
             })
             .await?;
             Ok(0.into())
@@ -191,13 +198,10 @@ impl Context {
     }
 
     pub fn take_events(&self) -> JsValue {
-        self.event_queue
-            .lock()
-            .unwrap()
-            .drain(..)
-            .map(|e| JsValue::from(e))
-            .collect::<js_sys::Array>()
-            .into()
+        self.event_receiver.try_iter()
+                .map(|e| JsValue::from(e))
+                .collect::<js_sys::Array>()
+                .into()
     }
 }
 
