@@ -1,4 +1,4 @@
-var io = require("socket.io-client");
+// var io = require("socket.io-client");
 var core = require("./core");
 var { consts } = require("../config.json");
 var running = false;
@@ -20,13 +20,13 @@ var frameBuffer = new Array(frameBufferSize);
 var bufferIndex = 0;
 
 var processingFrame = false;
-var ctx = undefined
+var rctx = undefined
 var address = undefined
 
 var lastFrameHeading = 3;
 
 function giveContext(context, contextAddress) {
-    ctx = context
+    rctx = context
     address = contextAddress
 }
 
@@ -54,83 +54,129 @@ function connectGame(url, name, callback, flag) {
 	var prefixes = consts.PREFIXES.split(" ");
 	var names = consts.NAMES.split(" ");
 	name = name || [prefixes[Math.floor(Math.random() * prefixes.length)], names[Math.floor(Math.random() * names.length)]].join(" ");
-	//Socket connection
-	io.j = [];
-	io.sockets = [];
-	socket = io(url, {
-		"forceNew": true,
-		upgrade: false,
-		transports: ["websocket"]
-	});
-	socket.on("connect", () => {
-		console.info("Connected to server.");
-	});
-	socket.on("game", data => {
-		// if (timeout != undefined) clearTimeout(timeout);
-		//Initialize game
-		//TODO: display data.gameid --- game id #
-		frame = data.frame;
-        reset();
-        console.log("Reset game");
-		//Load players
-		data.players.forEach(p => {
-			var pl = new core.Player(grid, p);
-			addPlayer(pl);
-		});
-		user = allPlayers[data.num];
-		//if (!user) throw new Error();
-		setUser(user);
-		//Load grid
-		var gridData = new Uint8Array(data.grid);
-		for (var r = 0; r < grid.size; r++) {
-			for (var c = 0; c < grid.size; c++) {
-				var ind = gridData[r * grid.size + c] - 1;
-				grid.set(r, c, ind === -1 ? null : players[ind]);
-			}
-		}
-		invokeRenderer("paint", []);
-		frame = data.frame;
-		if (requesting !== -1) {
-			//Update those cache frames after we updated game
-			var minFrame = requesting;
-			requesting = -1;
-			while (frameCache.length > frame - minFrame) processFrame(frameCache[frame - minFrame]);
-			frameCache = [];
+
+    frame = 0;
+    reset();
+    console.log("Reset game");
+
+    var possColors = core.Color.possColors();
+
+    // For each player on the dag, run these two lines below
+    var start = findEmpty(grid);
+    if (!start) return false;
+    var params = {
+        posX: start.col * consts.CELL_WIDTH,
+        posY: start.row * consts.CELL_WIDTH,
+        currentHeading: 1,
+        name,
+        num: 0,
+        base: possColors.shift()
+    };
+    var p = new core.Player(grid, params);
+    p.tmpHeading = params.currentHeading;
+    // p.client = client;
+    // players.push(p);
+    // newPlayers.push(p);
+    // var pl = new core.Player(grid, p);
+    addPlayer(p);
+    core.initPlayer(grid, p);
+
+    user = allPlayers[0];
+    //if (!user) throw new Error();
+    setUser(user);
+    //Load grid
+
+    var serialGrid = gridSerialData(grid, players);
+
+    var gridData = new Uint8Array(serialGrid);
+    for (var r = 0; r < grid.size; r++) {
+        for (var c = 0; c < grid.size; c++) {
+            var ind = gridData[r * grid.size + c] - 1;
+            grid.set(r, c, ind === -1 ? null : players[ind]);
         }
-        setTimeout(tick, 1000);
-        // setInterval(() => {
-        //     console.log("voldemort with a time bomb")
-        //     tick();
-        // }, 1000 / 15);
-	});
+    }
+    // invokeRenderer("paint", []);
+    callback(true, "");
+    setTimeout(tick, 1000);
+
+    //Socket connection
+	// io.j = [];
+	// io.sockets = [];
+	// socket = io(url, {
+	// 	"forceNew": true,
+	// 	upgrade: false,
+	// 	transports: ["websocket"]
+	// });
+	// socket.on("connect", () => {
+	// 	console.info("Connected to server.");
+	// });
+	// socket.on("game", data => {
+	// 	// if (timeout != undefined) clearTimeout(timeout);
+	// 	//Initialize game
+	// 	//TODO: display data.gameid --- game id #
+	// 	frame = data.frame;
+    //     reset();
+    //     console.log("Reset game");
+	// 	//Load players
+	// 	data.players.forEach(p => {
+	// 		var pl = new core.Player(grid, p);
+	// 		addPlayer(pl);
+	// 	});
+	// 	user = allPlayers[data.num];
+	// 	//if (!user) throw new Error();
+	// 	setUser(user);
+	// 	//Load grid
+	// 	var gridData = new Uint8Array(data.grid);
+	// 	for (var r = 0; r < grid.size; r++) {
+	// 		for (var c = 0; c < grid.size; c++) {
+	// 			var ind = gridData[r * grid.size + c] - 1;
+	// 			grid.set(r, c, ind === -1 ? null : players[ind]);
+	// 		}
+	// 	}
+	// 	invokeRenderer("paint", []);
+	// 	frame = data.frame;
+	// 	if (requesting !== -1) {
+	// 		//Update those cache frames after we updated game
+	// 		var minFrame = requesting;
+	// 		requesting = -1;
+	// 		while (frameCache.length > frame - minFrame) processFrame(frameCache[frame - minFrame]);
+	// 		frameCache = [];
+    //     }
+    //     setTimeout(tick, 1000);
+    //     // setInterval(() => {
+    //     //     console.log("voldemort with a time bomb")
+    //     //     tick();
+    //     // }, 1000 / 15);
+	// });
 	// socket.on("notifyFrame", processFrame);
-	socket.on("dead", () => {
-		socket.disconnect(); //In case we didn't get the disconnect call
-	});
-	socket.on("disconnect", () => {
-		console.info("Server has disconnected. Creating new game.");
-		socket.disconnect();
-		if (!user) return;
-        user.die();
-        console.log("Dead through server disconnecting.");
-		dirty = true;
-		paintLoop();
-		running = false;
-		invokeRenderer("disconnect", []);
-	});
-	socket.emit("hello", {
-		name: name,
-		type: 0, //Free-for-all
-		gameid: -1, //Requested game-id, or -1 for anyone
-		god: flag
-	}, (success, msg) => {
-		if (success) console.info("Connected to game!");
-		else {
-			console.error("Unable to connect to game: " + msg);
-			running = false;
-		}
-		if (callback) callback(success, msg);
-	});
+	// socket.on("dead", () => {
+    //     console.log("dead happening");
+	// 	// socket.disconnect(); //In case we didn't get the disconnect call
+	// });
+	// socket.on("disconnect", () => {
+	// 	console.info("Server has disconnected. Creating new game.");
+	// 	// socket.disconnect();
+	// 	if (!user) return;
+    //     user.die();
+    //     console.log("Dead through server disconnecting.");
+	// 	dirty = true;
+	// 	paintLoop();
+	// 	running = false;
+	// 	// invokeRenderer("disconnect", []);
+	// });
+	// socket.emit("hello", {
+	// 	name: name,
+	// 	type: 0, //Free-for-all
+	// 	gameid: -1, //Requested game-id, or -1 for anyone
+	// 	god: flag
+	// }, (success, msg) => {
+	// 	if (success) console.info("Connected to game!");
+	// 	else {
+	// 		console.error("Unable to connect to game: " + msg);
+	// 		running = false;
+	// 	}
+	// 	if (callback) callback(success, msg);
+	// });
 }
 
 function changeHeading(newHeading) {
@@ -138,14 +184,14 @@ function changeHeading(newHeading) {
 	if (!user || user.dead) return;
 	if (newHeading === user.currentHeading || ((newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))) {
 		//user.heading = newHeading;
-		if (socket) {
-			socket.emit("frame", {
-				frame: frame,
-				heading: newHeading
-			}, (success, msg) => {
-				if (!success) console.error(msg);
-			});
-		}
+		// if (socket) {
+		// 	socket.emit("frame", {
+		// 		frame: frame,
+		// 		heading: newHeading
+		// 	}, (success, msg) => {
+		// 		if (!success) console.error(msg);
+		// 	});
+		// }
 	}
 }
 
@@ -179,8 +225,10 @@ function addPlayer(player) {
 }
 
 function invokeRenderer(name, args) {
-	var renderer = exports.renderer;
-	if (renderer && typeof renderer[name] === "function") renderer[name].apply(exports, args);
+    var renderer = exports.renderer;
+    if (renderer && typeof renderer[name] === "function") {
+        renderer[name].apply(exports, args);
+    }
 }
 
 function reverseFrame(data) {
@@ -277,7 +325,7 @@ function processFrame(data) {
 			core.initPlayer(grid, pl);
 		});
 	}
-	var found = new Array(players.length);
+    var found = new Array(players.length);
 	data.moves.forEach((val, i) => {
         // console.log(val);
 		var player = allPlayers[val.num];
@@ -288,7 +336,7 @@ function processFrame(data) {
         }
 		found[i] = true;
 		player.heading = val.heading;
-	});
+    });
 	for (var i = 0; i < players.length; i++) {
 		//Implicitly leaving game
 		if (!found[i]) {
@@ -328,7 +376,7 @@ function paintLoop() {
 			deadFrames = 0;
 			return;
 		}
-		socket.disconnect();
+		// socket.disconnect();
 		deadFrames++;
 		dirty = true;
 		update();
@@ -365,15 +413,17 @@ function update() {
 
 async function tick() {
 
+    if (user.dead)
+        return
 
     // Get new info
-    let player_location = await ctx.get_player(address); //half way between min and max of u32
+    let player_location = await rctx.get_player(address); //half way between min and max of u32
     let heading = player_location.heading();
     console.log("heading: " + heading);
     // if (newHeading === user.currentHeading || ((newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))) {
     if (heading != lastFrameHeading) {
         console.log("Uploading heading: " + lastFrameHeading)
-        await ctx.apply_input(lastFrameHeading);
+        await rctx.apply_input(lastFrameHeading);
     }
 
     processFrame({
@@ -388,6 +438,43 @@ async function tick() {
     });
     frame++;
     setTimeout(tick, 0);
+}
+
+function gridSerialData(grid, players) {
+	var buff = Buffer.alloc(grid.size * grid.size);
+	var numToIndex = new Array(players.length > 0 ? players[players.length - 1].num + 1 : 0);
+	for (var i = 0; i < players.length; i++) {
+		numToIndex[players[i].num] = i + 1;
+	}
+	for (var r = 0; r < grid.size; r++) {
+		for (var c = 0; c < grid.size; c++) {
+			var ele = grid.get(r, c);
+			buff[r * grid.size + c] = ele ? numToIndex[ele.num] : 0;
+		}
+	}
+	return buff;
+}
+
+function findEmpty(grid) {
+	var available = [];
+	for (var r = 1; r < grid.size - 1; r++) {
+		for (var c = 1; c < grid.size - 1; c++) {
+			var cluttered = false;
+			checkclutter: for (var dr = -1; dr <= 1; dr++) {
+				for (var dc = -1; dc <= 1; dc++) {
+					if (grid.get(r + dr, c + dc)) {
+						cluttered = true;
+						break checkclutter;
+					}
+				}
+			}
+			if (!cluttered) available.push({
+				row: r,
+				col: c
+			});
+		}
+	}
+	return (available.length === 0) ? null : available[Math.floor(available.length * Math.random())];
 }
 
 //Export stuff

@@ -16,33 +16,31 @@ rust
   .catch(console.error);
 
 
-async function main(ctx) {
-    let address = ctx.get_address();
+async function main(rctx) {
+    let address = rctx.get_address();
 	console.log("Address: ", address);
 
 	console.log("Syncing tips");
-	await ctx.tips_sync();
+	await rctx.tips_sync();
 
 	console.log("Spawning player");
-	await ctx.spawn_player(0, 0); //half way between min and max of u32
+	await rctx.spawn_player(0, 0); //half way between min and max of u32
 
 	console.log("Applying heading");
-	await ctx.apply_input(1); //half way between min and max of u32
+	await rctx.apply_input(1); //half way between min and max of u32
 
 	console.log("Get player data");
-	let player_location = await ctx.get_player(address); //half way between min and max of u32
+	let player_location = await rctx.get_player(address); //half way between min and max of u32
     console.log("Current location ", player_location);
     console.log(player_location.x());
 
 
     window.$ = window.jQuery = require("jquery");
-    var io = require("socket.io-client");
+    // var io = require("socket.io-client");
     var client = require("./src/game-client");
-    client.giveContext(ctx, address);
+    client.giveContext(rctx, address);
 
     function run(flag) {
-        var contactAddress = $("#contactAddress").val();
-        console.log(contactAddress);
         client.renderer = flag ? require("./src/mode/god") : require("./src/mode/player");
         client.connectGame("//" + location.host, $("#name").val(), (success, msg) => {
             if (success) {
@@ -59,16 +57,12 @@ async function main(ctx) {
         var newHeading = -1;
         switch (e.key) {
             case "w": case "ArrowUp":
-                console.log("up");
                 newHeading = 0; break; //UP (W)
             case "d": case "ArrowRight":
-                console.log("right");
                 newHeading = 1; break; //RIGHT (D)
             case "s": case "ArrowDown":
-                console.log("down");
                 newHeading = 2; break; //DOWN (S)
             case "a": case "ArrowLeft":
-                console.log("left");
                 newHeading = 3; break; //LEFT (A)
             default: return; //Exit handler for other keys
         }
@@ -84,30 +78,39 @@ async function main(ctx) {
         }
         err.text("Loading... Please wait"); //TODO: show loading screen
         (() => {
-            var socket = io(`//${location.host}`, {
-                forceNew: true,
-                upgrade: false,
-                transports: ["websocket"]
+            $("#name").keypress(evt => {
+                if (evt.which === 13) run();
             });
-            socket.on("connect", () => {
-                socket.emit("pings");
+            $(".start").removeAttr("disabled").click(evt => {
+                run();
             });
-            socket.on("pongs", () => {
-                socket.disconnect();
-                err.text("All done, have fun!");
-                $("#name").keypress(evt => {
-                    if (evt.which === 13) run();
-                });
-                $(".start").removeAttr("disabled").click(evt => {
-                    run();
-                });
-                $(".spectate").removeAttr("disabled").click(evt => {
-                    run(true);
-                });
+            $(".spectate").removeAttr("disabled").click(evt => {
+                run(true);
             });
-            socket.on("connect_error", () => {
-                err.text("Cannot connect with server. This probably is due to misconfigured proxy server. (Try using a different browser)");
-            });
+            // var socket = io(`//${location.host}`, {
+            //     forceNew: true,
+            //     upgrade: false,
+            //     transports: ["websocket"]
+            // });
+            // socket.on("connect", () => {
+            //     socket.emit("pings");
+            // });
+            // socket.on("pongs", () => {
+            //     socket.disconnect();
+            //     err.text("All done, have fun!");
+            //     $("#name").keypress(evt => {
+            //         if (evt.which === 13) run();
+            //     });
+            //     $(".start").removeAttr("disabled").click(evt => {
+            //         run();
+            //     });
+            //     $(".spectate").removeAttr("disabled").click(evt => {
+            //         run(true);
+            //     });
+            // });
+            // socket.on("connect_error", () => {
+            //     err.text("Cannot connect with server. This probably is due to misconfigured proxy server. (Try using a different browser)");
+            // });
         })();
     });
     //Event listeners
