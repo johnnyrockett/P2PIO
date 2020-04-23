@@ -3,6 +3,8 @@
 // Basically everything that allows the client's understanding of the game state to be up to date
 
 const rust = import('./pkg');
+
+
 rust
   .then(m => {
     m.init();
@@ -17,6 +19,9 @@ rust
 
 
 async function main(rctx) {
+    window.$ = window.jQuery = require("jquery");
+    var err = $("#error");
+    err.text("Loading... Please wait");
 	console.log("Syncing tips");
 	await rctx.tips_sync();
 
@@ -35,7 +40,8 @@ async function main(rctx) {
     // console.log(player_location.x());
 
 
-    window.$ = window.jQuery = require("jquery");
+
+
     // var io = require("socket.io-client");
     var client = require("./src/game-client");
     client.giveContext(rctx);
@@ -71,12 +77,7 @@ async function main(rctx) {
     });
 
     $(document).ready(() => {
-        var err = $("#error");
-        if (!window.WebSocket) {
-            err.text("Your browser does not support WebSockets!");
-            return;
-        }
-        err.text("Loading... Please wait"); //TODO: show loading screen
+         //TODO: show loading screen
         (() => {
             $("#name").keypress(evt => {
                 if (evt.which === 13) run();
@@ -112,6 +113,7 @@ async function main(rctx) {
             //     err.text("Cannot connect with server. This probably is due to misconfigured proxy server. (Try using a different browser)");
             // });
         })();
+        err.text("All done, have fun!");
     });
     //Event listeners
 

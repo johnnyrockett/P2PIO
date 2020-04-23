@@ -429,8 +429,10 @@ async function syncTick() {
 
 async function tick() {
 
-    if (user.dead)
-        return
+    if (user.dead) {
+        running = false;
+        return connectGame("//" + location.host, user.name, (success, msg) => {}, false);
+    }
 
     var newPlayers = [];
 
