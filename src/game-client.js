@@ -501,7 +501,7 @@ async function tick() {
 
     processFrame(frameData);
     frame++;
-    setTimeout(tick, 0);
+    setTimeout(tick, 1000/60);
 }
 
 function gridSerialData(grid, players) {
