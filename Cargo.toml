@@ -1,7 +1,7 @@
 [package]
 name = "p2pio"
 version = "0.1.0"
-authors = ["Stuart Hunt <me@stuarhunt.dev>", "Johnny Rockett <me@johnnyrockett.dev>"]
+authors = ["Stuart Hunt <me@stuarhunt.dev>", "Johnny Rockett <me@johnnyrockett.dev>", "Colin Moore <colin@moore.one>"]
 edition = "2018"
 
 [lib]
@@ -17,12 +17,12 @@ wasm-bindgen-futures = "0.4.9"
 futures = "0.3.4"
 
 [dependencies.rustdag-wasm]
-path = "p2pio-contract/rustdag/bindings/wasm/"
+path = "rustdag/bindings/wasm/"
 
 [dependencies.rustdag-lib]
-path = "p2pio-contract/rustdag/lib/"
+path = "rustdag/lib/"
 default-features = false
 features = ["wasm-bind"]
 
 # [dependencies.p2pio-contract]
-# path = "p2pio-contract/contract/"
+# path = "contract/"
