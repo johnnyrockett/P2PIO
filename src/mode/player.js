@@ -154,7 +154,7 @@ function paintUIBar(ctx) {
 	ctx.fillStyle = "rgba(180, 180, 180, .3)";
 	ctx.fillRect(barOffset, 0, BAR_WIDTH, BAR_HEIGHT);
 
-	var userPortions = portionsRolling[user.num] ? portionsRolling[user.num].lag : 0;
+	var userPortions = user && portionsRolling[user.num] ? portionsRolling[user.num].lag : 0;
 	var barSize = Math.ceil((BAR_WIDTH - MIN_BAR_WIDTH) * userPortions + MIN_BAR_WIDTH);
 	ctx.fillStyle = user ? user.baseColor.rgbString() : "";
 	ctx.fillRect(barOffset, 0, barSize, consts.CELL_WIDTH);
