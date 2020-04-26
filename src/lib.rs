@@ -11,7 +11,7 @@ use rustdag_wasm::blockdag::BlockDAG;
 
 use std::sync::mpsc::{channel, Receiver, Sender};
 
-use std::{cell::RefCell, panic, rc::Rc, sync::RwLock};
+use std::{panic, rc::Rc, sync::RwLock};
 
 use log::info;
 
@@ -33,7 +33,6 @@ pub struct Context {
     event_sender: Sender<Event>,
     event_receiver: Receiver<Event>,
     contract_address: u64,
-    start_time: Rc<RefCell<Option<u64>>>,
 }
 
 #[wasm_bindgen]
@@ -49,7 +48,6 @@ impl Context {
             contract_address: contract_address
                 .parse()
                 .expect("Failed to parse contract address."),
-            start_time: Rc::from(RefCell::from(None)),
         }
     }
 
@@ -57,10 +55,8 @@ impl Context {
         let blockdag = self.blockdag.clone();
         let contract_address = self.contract_address;
         let sender = self.event_sender.clone();
-        let start_time = self.start_time.clone();
 
         future_to_promise(async move {
-            let start_time_closure = start_time.clone(); //make a special copy that get moved to the closure
             BlockDAG::tips_sync(blockdag.clone(), move |trans| match trans.get_data() {
                 TransactionData::ExecContract {
                     func_name,
@@ -74,7 +70,6 @@ impl Context {
                                 contract_val_to_i32(*x),
                                 contract_val_to_i32(*y),
                                 trans.get_timestamp(),
-                                start_time_closure.clone(),
                             )),
                             _ => panic!(
                                 "Unexpected number of arguments. Got {}, expected 2",
@@ -86,7 +81,6 @@ impl Context {
                                 trans.get_address().to_string(),
                                 unwrap_contract_u64(*heading) as u32,
                                 trans.get_timestamp(),
-                                start_time_closure.clone(),
                             )),
                             _ => panic!(
                                 "Unexpected number of arguments. Got {}, expected 2",
@@ -102,24 +96,6 @@ impl Context {
                 _ => (),
             })
             .await?;
-
-            if start_time.clone().borrow().is_none() {
-                let (st, _) = blockdag
-                    .clone_inner()
-                    .lock()
-                    .await
-                    .execute_contract(
-                        &new_key_pair(), // temporary keypair
-                        contract_address,
-                        "get_start_time",
-                        &[],
-                    )
-                    .await?;
-
-                start_time.borrow_mut().replace(unwrap_contract_u64(
-                    st.expect("get_start_time failed to return a value."),
-                ));
-            }
 
             Ok(0.into())
         })
@@ -145,7 +121,6 @@ impl Context {
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
         let event_sender = self.event_sender.clone();
-        let start_time = self.start_time.clone();
 
         future_to_promise(async move {
             let (_, trans) = inner
@@ -172,7 +147,6 @@ impl Context {
                     x,
                     y,
                     trans.get_timestamp(),
-                    start_time,
                 ))
                 .expect("Failed to send in the event mpsc");
 
@@ -244,7 +218,6 @@ impl Context {
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
         let event_sender = self.event_sender.clone();
-        let start_time = self.start_time.clone();
 
         future_to_promise(async move {
             let (_, trans) = inner
@@ -270,7 +243,6 @@ impl Context {
                     trans.get_address().to_string(),
                     heading,
                     trans.get_timestamp(),
-                    start_time,
                 ))
                 .expect("Failed to send in the event mpsc");
 
@@ -332,7 +304,6 @@ pub struct Event {
     heading: u32,
     kind: EventKind,
     timestamp: u64,
-    start_time: Rc<RefCell<Option<u64>>>,
 }
 
 #[wasm_bindgen]
@@ -348,7 +319,6 @@ impl Event {
         x: i32,
         y: i32,
         timestamp: u64,
-        start_time: Rc<RefCell<Option<u64>>>,
     ) -> Self {
         Event {
             id,
@@ -357,7 +327,6 @@ impl Event {
             heading: 0,
             kind: EventKind::Spawn,
             timestamp,
-            start_time,
         }
     }
 
@@ -365,7 +334,6 @@ impl Event {
         id: String,
         heading: u32,
         timestamp: u64,
-        start_time: Rc<RefCell<Option<u64>>>,
     ) -> Self {
         Event {
             id,
@@ -374,7 +342,6 @@ impl Event {
             heading,
             kind: EventKind::Input,
             timestamp,
-            start_time,
         }
     }
 }
@@ -418,11 +385,7 @@ impl Event {
     }
 
     pub fn get_timestamp(&self) -> JsValue {
-        ((self.timestamp
-            - self.start_time.borrow().expect(
-                "Failed to figure out start_time before this call. (Was tips_sync not called?)",
-            )) as u32)
-            .into()
+        self.timestamp.to_string().into()
     }
 }
 
