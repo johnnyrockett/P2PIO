@@ -27,9 +27,8 @@ var processingFrame = false;
 var rctx = undefined
 var address = undefined
 
-var lastFrameHeading = 1;
-
-var headingTest = 1;
+var inputHeading, pushedHeading;
+inputHeading = pushedHeading = 1;
 
 function giveContext(context) {
     rctx = context
@@ -108,101 +107,13 @@ async function connectGame(url, name, callback, flag) {
     // invokeRenderer("paint", []);
     callback(true, "");
 	setTimeout(tick, 1000);
-
-    //Socket connection
-	// io.j = [];
-	// io.sockets = [];
-	// socket = io(url, {
-	// 	"forceNew": true,
-	// 	upgrade: false,
-	// 	transports: ["websocket"]
-	// });
-	// socket.on("connect", () => {
-	// 	console.info("Connected to server.");
-	// });
-	// socket.on("game", data => {
-	// 	// if (timeout != undefined) clearTimeout(timeout);
-	// 	//Initialize game
-	// 	//TODO: display data.gameid --- game id #
-	// 	frame = data.frame;
-    //     reset();
-    //     console.log("Reset game");
-	// 	//Load players
-	// 	data.players.forEach(p => {
-	// 		var pl = new core.Player(grid, p);
-	// 		addPlayer(pl);
-	// 	});
-	// 	user = allPlayers[data.num];
-	// 	//if (!user) throw new Error();
-	// 	setUser(user);
-	// 	//Load grid
-	// 	var gridData = new Uint8Array(data.grid);
-	// 	for (var r = 0; r < grid.size; r++) {
-	// 		for (var c = 0; c < grid.size; c++) {
-	// 			var ind = gridData[r * grid.size + c] - 1;
-	// 			grid.set(r, c, ind === -1 ? null : players[ind]);
-	// 		}
-	// 	}
-	// 	invokeRenderer("paint", []);
-	// 	frame = data.frame;
-	// 	if (requesting !== -1) {
-	// 		//Update those cache frames after we updated game
-	// 		var minFrame = requesting;
-	// 		requesting = -1;
-	// 		while (frameCache.length > frame - minFrame) processFrame(frameCache[frame - minFrame]);
-	// 		frameCache = [];
-    //     }
-    //     setTimeout(tick, 1000);
-    //     // setInterval(() => {
-    //     //     console.log("voldemort with a time bomb")
-    //     //     tick();
-    //     // }, 1000 / 15);
-	// });
-	// socket.on("notifyFrame", processFrame);
-	// socket.on("dead", () => {
-    //     console.log("dead happening");
-	// 	// socket.disconnect(); //In case we didn't get the disconnect call
-	// });
-	// socket.on("disconnect", () => {
-	// 	console.info("Server has disconnected. Creating new game.");
-	// 	// socket.disconnect();
-	// 	if (!user) return;
-    //     user.die();
-    //     console.log("Dead through server disconnecting.");
-	// 	dirty = true;
-	// 	paintLoop();
-	// 	running = false;
-	// 	// invokeRenderer("disconnect", []);
-	// });
-	// socket.emit("hello", {
-	// 	name: name,
-	// 	type: 0, //Free-for-all
-	// 	gameid: -1, //Requested game-id, or -1 for anyone
-	// 	god: flag
-	// }, (success, msg) => {
-	// 	if (success) console.info("Connected to game!");
-	// 	else {
-	// 		console.error("Unable to connect to game: " + msg);
-	// 		running = false;
-	// 	}
-	// 	if (callback) callback(success, msg);
-	// });
 }
 
 function changeHeading(newHeading) {
-    lastFrameHeading = newHeading;
-	if (!user || user.dead) return;
-	if (newHeading === user.currentHeading || ((newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))) {
-		//user.heading = newHeading;
-		// if (socket) {
-		// 	socket.emit("frame", {
-		// 		frame: frame,
-		// 		heading: newHeading
-		// 	}, (success, msg) => {
-		// 		if (!success) console.error(msg);
-		// 	});
-		// }
-	}
+  console.log(newHeading % 2 === 0);
+  console.log(user.currentHeading % 2 === 0);
+  if (newHeading != user.currentHeading && ((newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0)))
+    inputHeading = newHeading;
 }
 
 function getUser() {
@@ -277,10 +188,10 @@ function processFrame(data) {
 	if (requesting !== -1 && requesting < data.frame) {
 		frameCache.push(data);
 		return;
-    }
-    if (data.frame - 1 > frame) {
-        frameCache.push(data);
-    }
+  }
+  if (data.frame - 1 > frame) {
+    frameCache.push(data);
+  }
 	else if (data.frame - 1 < frame) {
         // if (frame - data.frame - 1 > frameBufferSize) {
         //     console.error("Frame rewrite no longer in history.");
@@ -427,83 +338,69 @@ async function syncTick() {
 }
 
 async function tick() {
+  if (user.dead) {
+    running = false;
+    return connectGame("//" + location.host, user.name, (success, msg) => {}, false);
+  }
 
-    if (user.dead) {
-        running = false;
-        return connectGame("//" + location.host, user.name, (success, msg) => {}, false);
-    }
+  var newPlayers = [];
 
-    var newPlayers = [];
+  var events = await rctx.take_events();
+  for (var i=0; i<events.length; i++) {
+    if (events[i].is_input()) {
+      var id = events[i].get_id();
+      var head = events[i].get_input_heading();
+      console.log("Input event at time", events[i].get_timestamp());
 
-    var events = await rctx.take_events();
-    for (var i=0; i<events.length; i++) {
-        if (events[i].is_input()) {
-            var id = events[i].get_id();
-						var head = events[i].get_input_heading();
-						console.log("Input event at time", events[i].get_timestamp());
-            if (id == user.num)
-                headingTest = head;
+      moves[id] = {
+        "num": id,
+        "left": false,
+        "heading": head
+      }
+    } else if (events[i].is_spawn()) {
+      console.log("Spawn event at time", events[i].get_timestamp());
+        var id = events[i].get_id();
+        var x = events[i].get_spawn_x();
+        var y = events[i].get_spawn_y();
+        var params = {
+          posX: x,
+          posY: y,
+          currentHeading: 1,
+          name: id.toString(),
+          num: id,
+          base: possColors.shift()
+        };
+        newPlayers.push(params);
 
-            moves[id] = {
-                "num": id,
-                "left": false,
-                "heading": head
-            }
-        } else if (events[i].is_spawn()) {
-					console.log("Spawn event at time", events[i].get_timestamp());
-            var id = events[i].get_id();
-            var x = events[i].get_spawn_x();
-            var y = events[i].get_spawn_y();
-            var params = {
-                posX: x,
-                posY: y,
-                currentHeading: 1,
-                name: id.toString(),
-                num: id,
-                base: possColors.shift()
-            };
-            newPlayers.push(params);
-
-            moves[id] = {
-                "num": id,
-                "left": false,
-                "heading": 1
-            }
+        moves[id] = {
+          "num": id,
+          "left": false,
+          "heading": 1
         }
     }
+  }
 
-    if (headingTest != lastFrameHeading) {
-        rctx.apply_input(lastFrameHeading); //removed await
-    }
+  if (pushedHeading != inputHeading) {
+    rctx.apply_input(inputHeading); //removed await
+    pushedHeading = inputHeading
+  }
 
+  var listMoves = []
+  for (var key in moves) {
+    listMoves.push(moves[key]);
+  }
 
-    // Get new info
-    // let player_location = await rctx.get_player(address); //half way between min and max of u32
-    // let heading = player_location.heading();
-    // console.log("heading: " + heading);
-    // if (newHeading === user.currentHeading || ((newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))) {
-    // if (heading != lastFrameHeading) {
-    //     console.log("Uploading heading: " + lastFrameHeading)
-    //     await rctx.apply_input(lastFrameHeading);
-    // }
+  var frameData = {
+    "frame": frame+1,
+    "moves": listMoves
+  }
 
-    var listMoves = []
-    for (var key in moves) {
-        listMoves.push(moves[key]);
-    }
+  if (newPlayers.length > 0)
+    frameData["newPlayers"] = newPlayers;
 
-    var frameData = {
-        "frame": frame+1,
-        "moves": listMoves
-    }
-
-    if (newPlayers.length > 0)
-        frameData["newPlayers"] = newPlayers;
-
-
-    processFrame(frameData);
-    frame++;
-    setTimeout(tick, 1000/60);
+  processFrame(frameData);
+  frame++;
+  setTimeout(tick, 1000/60);
 }
 
 function gridSerialData(grid, players) {
