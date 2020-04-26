@@ -188,10 +188,10 @@ function processFrame(data) {
 	if (requesting !== -1 && requesting < data.frame) {
 		frameCache.push(data);
 		return;
-    }
-    if (data.frame - 1 > frame) {
-        frameCache.push(data);
-    }
+  }
+  if (data.frame - 1 > frame) {
+    frameCache.push(data);
+  }
 	else if (data.frame - 1 < frame) {
         // if (frame - data.frame - 1 > frameBufferSize) {
         //     console.error("Frame rewrite no longer in history.");
