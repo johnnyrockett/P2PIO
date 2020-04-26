@@ -439,7 +439,8 @@ async function tick() {
     for (var i=0; i<events.length; i++) {
         if (events[i].is_input()) {
             var id = events[i].get_id();
-            var head = await events[i].get_input_heading();
+						var head = events[i].get_input_heading();
+						console.log("Input event at time", events[i].get_timestamp());
             if (id == user.num)
                 headingTest = head;
 
@@ -449,10 +450,10 @@ async function tick() {
                 "heading": head
             }
         } else if (events[i].is_spawn()) {
-            console.log("adding spawn");
-            var id = await events[i].get_id();
-            var x = await events[i].get_spawn_x();
-            var y = await events[i].get_spawn_y();
+					console.log("Spawn event at time", events[i].get_timestamp());
+            var id = events[i].get_id();
+            var x = events[i].get_spawn_x();
+            var y = events[i].get_spawn_y();
             var params = {
                 posX: x,
                 posY: y,

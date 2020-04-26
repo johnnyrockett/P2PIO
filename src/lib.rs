@@ -11,7 +11,7 @@ use rustdag_wasm::blockdag::BlockDAG;
 
 use std::sync::mpsc::{channel, Receiver, Sender};
 
-use std::{panic, rc::Rc, sync::RwLock};
+use std::{cell::RefCell, panic, rc::Rc, sync::RwLock};
 
 use log::info;
 
@@ -33,6 +33,7 @@ pub struct Context {
     event_sender: Sender<Event>,
     event_receiver: Receiver<Event>,
     contract_address: u64,
+    start_time: Rc<RefCell<Option<u64>>>,
 }
 
 #[wasm_bindgen]
@@ -48,6 +49,7 @@ impl Context {
             contract_address: contract_address
                 .parse()
                 .expect("Failed to parse contract address."),
+            start_time: Rc::from(RefCell::from(None)),
         }
     }
 
@@ -55,8 +57,11 @@ impl Context {
         let blockdag = self.blockdag.clone();
         let contract_address = self.contract_address;
         let sender = self.event_sender.clone();
+        let start_time = self.start_time.clone();
+
         future_to_promise(async move {
-            BlockDAG::tips_sync(blockdag, move |trans| match trans.get_data() {
+            let start_time_closure = start_time.clone(); //make a special copy that get moved to the closure
+            BlockDAG::tips_sync(blockdag.clone(), move |trans| match trans.get_data() {
                 TransactionData::ExecContract {
                     func_name,
                     args,
@@ -68,6 +73,8 @@ impl Context {
                                 trans.get_address().to_string(),
                                 contract_val_to_i32(*x),
                                 contract_val_to_i32(*y),
+                                trans.get_timestamp(),
+                                start_time_closure.clone(),
                             )),
                             _ => panic!(
                                 "Unexpected number of arguments. Got {}, expected 2",
@@ -78,6 +85,8 @@ impl Context {
                             [heading] => Some(Event::input(
                                 trans.get_address().to_string(),
                                 unwrap_contract_u64(*heading) as u32,
+                                trans.get_timestamp(),
+                                start_time_closure.clone(),
                             )),
                             _ => panic!(
                                 "Unexpected number of arguments. Got {}, expected 2",
@@ -93,6 +102,25 @@ impl Context {
                 _ => (),
             })
             .await?;
+
+            if start_time.clone().borrow().is_none() {
+                let (st, _) = blockdag
+                    .clone_inner()
+                    .lock()
+                    .await
+                    .execute_contract(
+                        &new_key_pair(), // temporary keypair
+                        contract_address,
+                        "get_start_time",
+                        &[],
+                    )
+                    .await?;
+
+                start_time.borrow_mut().replace(unwrap_contract_u64(
+                    st.expect("get_start_time failed to return a value."),
+                ));
+            }
+
             Ok(0.into())
         })
     }
@@ -116,9 +144,11 @@ impl Context {
             .replace(new_key_pair()); // create new keypair
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
+        let event_sender = self.event_sender.clone();
+        let start_time = self.start_time.clone();
 
         future_to_promise(async move {
-            inner
+            let (_, trans) = inner
                 .lock()
                 .await
                 .execute_contract(
@@ -132,6 +162,20 @@ impl Context {
                     &[i32_to_contract_val(x), i32_to_contract_val(y)],
                 )
                 .await?;
+
+            let trans =
+                trans.expect("apply_input contract execution failed to produce a transaction.");
+
+            event_sender
+                .send(Event::spawn(
+                    trans.get_address().to_string(),
+                    x,
+                    y,
+                    trans.get_timestamp(),
+                    start_time,
+                ))
+                .expect("Failed to send in the event mpsc");
+
             Ok(1.into())
         })
     }
@@ -143,7 +187,7 @@ impl Context {
         let contract_address = self.contract_address;
 
         future_to_promise(async move {
-            let x = inner
+            let (x, _) = inner
                 .lock()
                 .await
                 .execute_contract(
@@ -156,10 +200,10 @@ impl Context {
                     "get_player_x",
                     &[ContractValue::U64(id_num)],
                 )
-                .await?
-                .expect("Should return a value");
+                .await?;
+            let x = x.expect("Should return a value");
 
-            let y = inner
+            let (y, _) = inner
                 .lock()
                 .await
                 .execute_contract(
@@ -172,10 +216,10 @@ impl Context {
                     "get_player_y",
                     &[ContractValue::U64(id_num)],
                 )
-                .await?
-                .expect("Should return a value");
+                .await?;
+            let y = y.expect("Should return a value");
 
-            let heading = inner
+            let (heading, _) = inner
                 .lock()
                 .await
                 .execute_contract(
@@ -188,8 +232,8 @@ impl Context {
                     "get_player_heading",
                     &[ContractValue::U64(id_num)],
                 )
-                .await?
-                .expect("Should return a value");
+                .await?;
+            let heading = heading.expect("Should return a value");
 
             Ok(PlayerData::from_contract(x, y, heading).into())
         })
@@ -199,13 +243,11 @@ impl Context {
         let inner = self.blockdag.clone_inner();
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
-
-        self.event_sender
-            .send(Event::input(self.get_address(), heading))
-            .expect("Failed to send in the event mpsc");
+        let event_sender = self.event_sender.clone();
+        let start_time = self.start_time.clone();
 
         future_to_promise(async move {
-            inner
+            let (_, trans) = inner
                 .lock()
                 .await
                 .execute_contract(
@@ -219,6 +261,19 @@ impl Context {
                     &[ContractValue::U64(heading.into())],
                 )
                 .await?;
+
+            let trans =
+                trans.expect("apply_input contract execution failed to produce a transaction.");
+
+            event_sender
+                .send(Event::input(
+                    trans.get_address().to_string(),
+                    heading,
+                    trans.get_timestamp(),
+                    start_time,
+                ))
+                .expect("Failed to send in the event mpsc");
+
             Ok(1.into())
         })
     }
@@ -276,6 +331,8 @@ pub struct Event {
     y: i32,
     heading: u32,
     kind: EventKind,
+    timestamp: u64,
+    start_time: Rc<RefCell<Option<u64>>>,
 }
 
 #[wasm_bindgen]
@@ -285,28 +342,45 @@ pub enum EventKind {
     Input,
 }
 
-#[wasm_bindgen]
 impl Event {
-    pub fn spawn(id: String, x: i32, y: i32) -> Self {
+    pub fn spawn(
+        id: String,
+        x: i32,
+        y: i32,
+        timestamp: u64,
+        start_time: Rc<RefCell<Option<u64>>>,
+    ) -> Self {
         Event {
             id,
             x,
             y,
             heading: 0,
             kind: EventKind::Spawn,
+            timestamp,
+            start_time,
         }
     }
 
-    pub fn input(id: String, heading: u32) -> Self {
+    pub fn input(
+        id: String,
+        heading: u32,
+        timestamp: u64,
+        start_time: Rc<RefCell<Option<u64>>>,
+    ) -> Self {
         Event {
             id,
             x: 0,
             y: 0,
             heading,
             kind: EventKind::Input,
+            timestamp,
+            start_time,
         }
     }
+}
 
+#[wasm_bindgen]
+impl Event {
     pub fn is_spawn(&self) -> bool {
         self.kind == EventKind::Spawn
     }
@@ -341,6 +415,14 @@ impl Event {
         } else {
             JsValue::UNDEFINED
         }
+    }
+
+    pub fn get_timestamp(&self) -> JsValue {
+        ((self.timestamp
+            - self.start_time.borrow().expect(
+                "Failed to figure out start_time before this call. (Was tips_sync not called?)",
+            )) as u32)
+            .into()
     }
 }
 
