@@ -6,7 +6,7 @@
 		"GRID_COUNT": 100,
 		"CELL_WIDTH": 40,
     "SPEED": 5,
-    "FPS": 60,
+    "SPEEDFPS": 30,
 		"BORDER_WIDTH": 20,
 		"MAX_PLAYERS": 70,
 		"NEW_PLAYER_LAG": 0,

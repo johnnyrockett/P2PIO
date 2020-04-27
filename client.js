@@ -58,24 +58,23 @@ async function main(rctx) {
                 $("#error").text(msg);
             }
         }, flag);
+        $(document).keydown(e => {
+          var newHeading = -1;
+          switch (e.key) {
+              case "w": case "ArrowUp":
+                  newHeading = 0; break; //UP (W)
+              case "d": case "ArrowRight":
+                  newHeading = 1; break; //RIGHT (D)
+              case "s": case "ArrowDown":
+                  newHeading = 2; break; //DOWN (S)
+              case "a": case "ArrowLeft":
+                  newHeading = 3; break; //LEFT (A)
+              default: return; //Exit handler for other keys
+          }
+          client.changeHeading(newHeading);
+          //e.preventDefault();
+      });
     }
-
-    $(document).keydown(e => {
-        var newHeading = -1;
-        switch (e.key) {
-            case "w": case "ArrowUp":
-                newHeading = 0; break; //UP (W)
-            case "d": case "ArrowRight":
-                newHeading = 1; break; //RIGHT (D)
-            case "s": case "ArrowDown":
-                newHeading = 2; break; //DOWN (S)
-            case "a": case "ArrowLeft":
-                newHeading = 3; break; //LEFT (A)
-            default: return; //Exit handler for other keys
-        }
-        client.changeHeading(newHeading);
-        //e.preventDefault();
-    });
 
     $(document).ready(() => {
          //TODO: show loading screen
@@ -89,30 +88,6 @@ async function main(rctx) {
             $(".spectate").removeAttr("disabled").click(evt => {
                 run(true);
             });
-            // var socket = io(`//${location.host}`, {
-            //     forceNew: true,
-            //     upgrade: false,
-            //     transports: ["websocket"]
-            // });
-            // socket.on("connect", () => {
-            //     socket.emit("pings");
-            // });
-            // socket.on("pongs", () => {
-            //     socket.disconnect();
-            //     err.text("All done, have fun!");
-            //     $("#name").keypress(evt => {
-            //         if (evt.which === 13) run();
-            //     });
-            //     $(".start").removeAttr("disabled").click(evt => {
-            //         run();
-            //     });
-            //     $(".spectate").removeAttr("disabled").click(evt => {
-            //         run(true);
-            //     });
-            // });
-            // socket.on("connect_error", () => {
-            //     err.text("Cannot connect with server. This probably is due to misconfigured proxy server. (Try using a different browser)");
-            // });
         })();
         err.text("All done, have fun!");
     });

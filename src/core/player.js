@@ -58,7 +58,7 @@ function Tail(player, sdata) {
 	}
 	data.grid = player.grid;
 
-	defineInstanceMethods(this, data, addTail, hitsTail, fillTail, renderTail, reposition, serialData);
+	defineInstanceMethods(this, data, addTail, getPrevRow, getPrevCol, hitsTail, fillTail, renderTail, reposition, serialData);
 	Object.defineProperty(this, "moves", {
 		get: function() {
 			return data.tail.slice(0);
@@ -79,6 +79,14 @@ function serialData(data) {
 function setTailGrid(data, tailGrid, r, c) {
 	if (!tailGrid[r]) tailGrid[r] = [];
 	tailGrid[r][c] = true;
+}
+
+function getPrevRow(data) {
+  return data.prevRow;
+}
+
+function getPrevCol(data) {
+  return data.prevCol;
 }
 
 function addTail(data, orientation, count) {
@@ -398,14 +406,26 @@ function reConfigure(x, y, lag, heading) {
 function updateReferencePoint(data, referenceTime) {
   if (data.referenceTime != null) {
     var difTime = referenceTime - data.referenceTime;
-    var positionOffset = difTime / (1000 / consts.FPS) * consts.SPEED;
-    switch (data.heading) {
+    var positionOffset = difTime / (1000 / consts.SPEEDFPS) * consts.SPEED;
+
+    var diff = positionOffset % consts.CELL_WIDTH;
+    if (diff < consts.CELL_WIDTH/2)
+      positionOffset -= diff;
+    else
+      positionOffset += consts.CELL_WIDTH - diff;
+
+    console.log(positionOffset);
+
+    var { heading } = this;
+    switch (heading) {
       case 0: data.originY -= positionOffset; break; //UP
       case 1: data.originX += positionOffset; break; //RIGHT
       case 2: data.originY += positionOffset; break; //DOWN
       case 3: data.originX -= positionOffset; break; //LEFT
       case 4: break;
     }
+    data.posX = data.originX;
+    data.posY = data.originY;
   }
   data.referenceTime = referenceTime;
 }
@@ -416,35 +436,54 @@ function move(data, currentTime) {
 		return;
 	}
 	//Move to new position
-	var { heading } = this;
-	if (this.posX % consts.CELL_WIDTH !== 0 || this.posY % consts.CELL_WIDTH !== 0) heading = data.currentHeading;
-  else data.currentHeading = heading;
+  var { heading } = this;
+	// if (this.posX % consts.CELL_WIDTH !== 0 || this.posY % consts.CELL_WIDTH !== 0) heading = data.currentHeading;
+  // else data.currentHeading = heading;
+  data.currentHeading = heading;
 
   var difTime = currentTime - data.referenceTime;
-  console.log(difTime);
-  var offset = difTime / (1000 / consts.FPS) * consts.SPEED;
+  var offset = difTime / (1000 / consts.SPEEDFPS) * consts.SPEED;
+  // console.log(offset);
 
 	switch (heading) {
 		case 0: data.posY = data.originY - offset; break; //UP
 		case 1: data.posX = data.originX + offset; break; //RIGHT
 		case 2: data.posY = data.originY + offset; break; //DOWN
     case 3: data.posX = data.originX - offset; break; //LEFT
-    case 4: break;
-	}
+    case 4: break; // Do nothing
+  }
+
+  // switch (heading) {
+	// 	case 0: data.posY -= consts.SPEED; break; //UP
+	// 	case 1: data.posX += consts.SPEED; break; //RIGHT
+	// 	case 2: data.posY += consts.SPEED; break; //DOWN
+  //   case 3: data.posX -= consts.SPEED; break; //LEFT
+  //   case 4: break;
+	// }
 	//Check for out of bounds
 	var { row, col } = this;
 	if (data.grid.isOutOfBounds(row, col)) {
 		data.dead = true;
 		return;
-	}
+  }
+  var oldr = this.tail.getPrevRow();
+  var oldc = this.tail.getPrevCol();
+  var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
+  this.tail.addTail(heading, count-1);
 	//Update tail position
 	if (data.grid.get(row, col) === this) {
 		//Safe zone!
 		this.tail.fillTail();
-		this.tail.reposition(row, col);
-	}
+    this.tail.reposition(row, col);
+  }
+	// } else {
+  //   var oldr = this.tail.getPrevRow();
+  //   var oldc = this.tail.getPrevCol();
+  //   var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
+  //   this.tail.addTail(heading, count-1);
+  // }
 	//If we are completely in a new cell (not in our safe zone), we add to the tail
-    else if (this.posX % consts.CELL_WIDTH === 0 && this.posY % consts.CELL_WIDTH === 0) this.tail.addTail(heading);
+  // else if (this.posX % consts.CELL_WIDTH === 0 && this.posY % consts.CELL_WIDTH === 0) this.tail.addTail(heading);
 }
 
 function moveInverse(oldData, freshData) {

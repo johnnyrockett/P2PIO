@@ -21,8 +21,6 @@ var bufferIndex = 0;
 
 var possColors = core.Color.possColors();
 
-var moves = [];
-
 var processingFrame = false;
 var rctx = undefined;
 var address = undefined;
@@ -292,7 +290,6 @@ function setUser(player) {
 
 function update() {
   var num = Number(rctx.epoch_time());
-  console.log(Date.now(), num);
   var currentTime = new Date(num);
   var dead = [];
   core.updateFrame(grid, players, dead, (killer, other) => {
@@ -324,6 +321,7 @@ async function tick() {
   }
 
   var newPlayers = [];
+  var moves = [];
 
   var events = await rctx.take_events();
   for (var i = 0; i < events.length; i++) {
@@ -333,12 +331,12 @@ async function tick() {
       var millis = Number(events[i].get_timestamp());
       // console.log("Input event at time", milliseconds); // 1587936575412
 
-      moves[id] = {
+      moves.push({
         num: id,
         left: false,
         heading: head,
         referenceTime: new Date(millis)
-      };
+      });
     } else if (events[i].is_spawn()) {
       var birthMillis = Number(events[i].get_timestamp());
       var id = events[i].get_id();
@@ -347,19 +345,19 @@ async function tick() {
       var params = {
         posX: x,
         posY: y,
-        currentHeading: 1,
+        currentHeading: 4,
         name: id.toString(),
         num: id,
         base: possColors.shift(),
       };
       newPlayers.push(params);
 
-      moves[id] = {
+      moves.push({
         num: id,
         left: false,
-        heading: 1,
+        heading: 4,
         referenceTime: new Date(birthMillis)
-      };
+      });
     }
   }
 
@@ -368,14 +366,10 @@ async function tick() {
     pushedHeading = inputHeading;
   }
 
-  var listMoves = [];
-  for (var key in moves) {
-    listMoves.push(moves[key]);
-  }
 
   var frameData = {
     frame: frame + 1,
-    moves: listMoves,
+    moves: moves,
   };
 
   if (newPlayers.length > 0) frameData["newPlayers"] = newPlayers;

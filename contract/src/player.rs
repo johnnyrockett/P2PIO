@@ -35,7 +35,7 @@ impl Player {
     pub fn spawn(id: i64, x: i64, y: i64, tick: i64) -> Self {
         let mut player = Self::load(id);
         player.set_position(x, y, tick);
-        player.set_heading(PlayerHeading::Right);
+        player.set_heading(PlayerHeading::NoHeading);
 
         player
     }
