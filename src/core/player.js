@@ -409,9 +409,10 @@ function updateReferencePoint(data, referenceTime) {
     var positionOffset = difTime / (1000 / consts.SPEEDFPS) * consts.SPEED;
 
     var diff = positionOffset % consts.CELL_WIDTH;
-    if (diff < consts.CELL_WIDTH/2)
+    if (diff < consts.CELL_WIDTH/2) {
       positionOffset -= diff;
-    else
+      // remove last tail
+    }else
       positionOffset += consts.CELL_WIDTH - diff;
 
     console.log(positionOffset);
@@ -426,6 +427,16 @@ function updateReferencePoint(data, referenceTime) {
     }
     data.posX = data.originX;
     data.posY = data.originY;
+    var { row, col } = this;
+    var oldr = this.tail.getPrevRow();
+    var oldc = this.tail.getPrevCol();
+    var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
+    this.tail.addTail(heading, count-1);
+    if (data.grid.get(row, col) === this) {
+      //Safe zone!
+      this.tail.fillTail();
+      this.tail.reposition(row, col);
+    }
   }
   data.referenceTime = referenceTime;
 }
