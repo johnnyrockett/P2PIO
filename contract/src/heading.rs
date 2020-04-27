@@ -4,6 +4,7 @@ pub enum PlayerHeading {
     Down,
     Left,
     Right,
+    NoHeading,
 }
 
 impl From<i64> for PlayerHeading {
@@ -13,6 +14,7 @@ impl From<i64> for PlayerHeading {
             1 => PlayerHeading::Down,
             2 => PlayerHeading::Left,
             3 => PlayerHeading::Right,
+            4 => PlayerHeading::NoHeading,
             _ => std::process::abort(),
         }
     }
