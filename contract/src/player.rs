@@ -57,6 +57,7 @@ impl Player {
             PlayerHeading::Down => y -= delta_t,
             PlayerHeading::Left => x -= delta_t,
             PlayerHeading::Right => x += delta_t,
+            PlayerHeading::NoHeading => (),
         }
 
         (x, y)
