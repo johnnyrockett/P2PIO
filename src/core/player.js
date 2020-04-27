@@ -91,7 +91,7 @@ function getPrevCol(data) {
 
 function addTail(data, orientation, count) {
 	if (count === undefined) count = 1;
-	if (!count || count < 0) return;
+	if (!count || count <= 0) return;
 
 	var prev = data.prev;
 	var r = data.prevRow, c = data.prevCol;
