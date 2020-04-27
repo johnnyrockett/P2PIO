@@ -51,6 +51,10 @@ impl Context {
         }
     }
 
+    pub fn epoch_time(&self) -> String {
+        rustdag_lib::util::epoch_time().to_string()
+    }
+
     pub fn tips_sync(&self) -> Promise {
         let blockdag = self.blockdag.clone();
         let contract_address = self.contract_address;

@@ -295,10 +295,13 @@ function Player(grid, sdata) {
 	data.name = sdata.name || "Player " + (data.num + 1); // player name
 	data.grid = grid; // their own copy of who owns what territory?
 	data.posX = sdata.posX; // x coord
-	data.posY = sdata.posY; // y coord
+  data.posY = sdata.posY; // y coord
+  data.originX = sdata.posX;
+  data.originY = sdata.posY;
 	this.heading = data.currentHeading = sdata.currentHeading; //0 is up, 1 is right, 2 is down, 3 is left
 	data.waitLag = sdata.waitLag || 0;
-	data.dead = false;
+  data.dead = false;
+  data.referenceTime = null;
 
 	//Only need colors for client side
 	var base;
@@ -321,7 +324,8 @@ function Player(grid, sdata) {
 
     //Instance methods
     this.reConfigure = reConfigure.bind(data);
-	this.move = move.bind(this, data);
+  this.move = move.bind(this, data);
+  this.updateReferencePoint = updateReferencePoint.bind(this, data);
 	this.die = () => { data.dead = true; };
 	this.serialData = function() {
 		return {
@@ -391,7 +395,22 @@ function reConfigure(x, y, lag, heading) {
     this.heading = this.currentHeading = heading;
 }
 
-function move(data) {
+function updateReferencePoint(data, referenceTime) {
+  if (data.referenceTime != null) {
+    var difTime = referenceTime - data.referenceTime;
+    var positionOffset = difTime / (1000 / consts.FPS) * consts.SPEED;
+    switch (data.heading) {
+      case 0: data.originY -= positionOffset; break; //UP
+      case 1: data.originX += positionOffset; break; //RIGHT
+      case 2: data.originY += positionOffset; break; //DOWN
+      case 3: data.originX -= positionOffset; break; //LEFT
+      case 4: break;
+    }
+  }
+  data.referenceTime = referenceTime;
+}
+
+function move(data, currentTime) {
 	if (data.waitLag < consts.NEW_PLAYER_LAG) { //Wait for a second at least
 		data.waitLag++;
 		return;
@@ -399,12 +418,18 @@ function move(data) {
 	//Move to new position
 	var { heading } = this;
 	if (this.posX % consts.CELL_WIDTH !== 0 || this.posY % consts.CELL_WIDTH !== 0) heading = data.currentHeading;
-	else data.currentHeading = heading;
+  else data.currentHeading = heading;
+
+  var difTime = currentTime - data.referenceTime;
+  console.log(difTime);
+  var offset = difTime / (1000 / consts.FPS) * consts.SPEED;
+
 	switch (heading) {
-		case 0: data.posY -= consts.SPEED; break; //UP
-		case 1: data.posX += consts.SPEED; break; //RIGHT
-		case 2: data.posY += consts.SPEED; break; //DOWN
-		case 3: data.posX -= consts.SPEED; break; //LEFT
+		case 0: data.posY = data.originY - offset; break; //UP
+		case 1: data.posX = data.originX + offset; break; //RIGHT
+		case 2: data.posY = data.originY + offset; break; //DOWN
+    case 3: data.posX = data.originX - offset; break; //LEFT
+    case 4: break;
 	}
 	//Check for out of bounds
 	var { row, col } = this;

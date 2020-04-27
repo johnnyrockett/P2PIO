@@ -11,7 +11,7 @@ exports.initPlayer = (grid, player) => {
 		}
 	}
 };
-exports.updateFrame = (grid, players, dead, notifyKill) => {
+exports.updateFrame = (grid, players, dead, notifyKill, currentTime) => {
 	var adead = [];
 	if (dead instanceof Array) adead = dead;
 
@@ -21,7 +21,7 @@ exports.updateFrame = (grid, players, dead, notifyKill) => {
 
 	//Move players
 	var tmp = players.filter(val => {
-		val.move();
+		val.move(currentTime);
 		if (val.dead) adead.push(val);
 		return !val.dead;
 	});
