@@ -412,10 +412,9 @@ function updateReferencePoint(data, referenceTime) {
     if (diff < consts.CELL_WIDTH/2) {
       positionOffset -= diff;
       // remove last tail
-    }else
+    } else {
       positionOffset += consts.CELL_WIDTH - diff;
-
-    console.log(positionOffset);
+    }
 
     var { heading } = this;
     switch (heading) {

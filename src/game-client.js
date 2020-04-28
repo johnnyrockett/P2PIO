@@ -25,6 +25,9 @@ var processingFrame = false;
 var rctx = undefined;
 var address = undefined;
 
+var timeline = [];
+var timelineIndex = 0;
+
 var inputHeading, pushedHeading;
 inputHeading = pushedHeading = 4;
 
@@ -163,76 +166,67 @@ function reverseFrame(data) {
   mimiRequestAnimationFrame(paintLoop);
 }
 
-function processFrame(data) {
-  // if (processingFrame) {
-  //     console.log('Missed Frame');
-  // }
-  // processingFrame = true;
-  // console.log(data);
-  // if (timeout != undefined) clearTimeout(timeout);
-  if (requesting !== -1 && requesting < data.frame) {
-    frameCache.push(data);
-    return;
+function processFrame() {
+  // frameBuffer[bufferIndex] = frameState;
+  // bufferIndex = (bufferIndex + 1) % frameBufferSize;
+  // frame++;
+  var now = Date.now();
+  var events = []
+  while (timeline.length > timelineIndex && now >= timeline[timelineIndex].get_timestamp()) {
+    events.push(timeline[timelineIndex]);
+    timelineIndex++;
   }
-  if (data.frame - 1 > frame) {
-    frameCache.push(data);
-  } else if (data.frame - 1 < frame) {
-    // if (frame - data.frame - 1 > frameBufferSize) {
-    //     console.error("Frame rewrite no longer in history.");
-    //     // console.error("Frames don't match up!");
-    //     // socket.emit("requestFrame"); //Restore data
-    //     // requesting = data.frame;
-    //     // frameCache.push(data);
-    //     return;
-    // }
-    // console.log(players[0].posX);
-    // for (var i=0; i < frame - data.frame; i++) {
-    //     bufferIndex--;
-    //     if (bufferIndex < 0)
-    //         bufferIndex += frameBufferSize;
-    //     reverseFrame(frameBuffer[bufferIndex]);
-    // }
-    // console.log(players[0].posX);
-    // frame = data.frame;
-    console.log(data.frame + " given. Expecting " + frame);
-    return;
-  }
-  var playerStats = {};
-  for (var i = 0; i < players.length; i++) {
-    var p = players[i];
-    playerStats[p.num] = [p.posX, p.posY, p.waitLag];
-  }
-  if (data.moves != undefined) {
-    for (var i = 0; i < data.moves.length; i++) {
-      var move = data.moves[i];
 
-      if (move.num in playerStats) playerStats[move.num].push(move.heading);
+  var newPlayers = [];
+  var moves = [];
+
+  for (var i = 0; i < events.length; i++) {
+    if (events[i].is_input()) {
+      var id = events[i].get_id();
+      var head = events[i].get_input_heading();
+      var millis = Number(events[i].get_timestamp());
+      // console.log("Input event at time", milliseconds); // 1587936575412
+
+      moves.push({
+        num: id,
+        left: false,
+        heading: head,
+        referenceTime: new Date(millis)
+      });
+    } else if (events[i].is_spawn()) {
+      var birthMillis = Number(events[i].get_timestamp());
+      var id = events[i].get_id();
+      var x = events[i].get_spawn_x();
+      var y = events[i].get_spawn_y();
+      var params = {
+        posX: x,
+        posY: y,
+        currentHeading: 4,
+        name: id.toString(),
+        num: id,
+        base: possColors.shift(),
+      };
+      newPlayers.push(params);
+
+      moves.push({
+        num: id,
+        left: false,
+        heading: 4,
+        referenceTime: new Date(birthMillis)
+      });
     }
-  } else {
-    console.log(data);
   }
-  var frameState = {
-    playerStats: playerStats,
-    frame: data,
-  };
-  frameBuffer[bufferIndex] = frameState;
-  bufferIndex = (bufferIndex + 1) % frameBufferSize;
-  frame++;
-  if (frame === 99) {
-    console.log(frameBuffer);
-  }
-  if (data.newPlayers) {
-    data.newPlayers.forEach((p) => {
-      var pl = new core.Player(grid, p);
-      addPlayer(pl);
-      core.initPlayer(grid, pl);
-      if (p.num === address) {
-        user = allPlayers[address]
-        setUser(user);
-      }
-    });
-  }
-  data.moves.forEach((val, i) => {
+
+  newPlayers.forEach((p) => {
+    var pl = new core.Player(grid, p);
+    addPlayer(pl);
+    core.initPlayer(grid, pl);
+    if (p.num === address) {
+      user = allPlayers[address]
+      setUser(user);
+    }
+  });
+  moves.forEach((val, i) => {
     var player = allPlayers[val.num];
     if (player != undefined) {
       player.updateReferencePoint(val.referenceTime);
@@ -240,11 +234,6 @@ function processFrame(data) {
     }
   });
   update();
-  // var locs = {};
-  // for (var i = 0; i < players.length; i++) {
-  // 	var p = players[i];
-  // 	locs[p.num] = [p.posX, p.posY, p.waitLag];
-  // }
   dirty = true;
   mimiRequestAnimationFrame(paintLoop);
 }
@@ -320,62 +309,16 @@ async function tick() {
     );
   }
 
-  var newPlayers = [];
-  var moves = [];
-
-  var events = await rctx.take_events();
-  for (var i = 0; i < events.length; i++) {
-    if (events[i].is_input()) {
-      var id = events[i].get_id();
-      var head = events[i].get_input_heading();
-      var millis = Number(events[i].get_timestamp());
-      // console.log("Input event at time", milliseconds); // 1587936575412
-
-      moves.push({
-        num: id,
-        left: false,
-        heading: head,
-        referenceTime: new Date(millis)
-      });
-    } else if (events[i].is_spawn()) {
-      var birthMillis = Number(events[i].get_timestamp());
-      var id = events[i].get_id();
-      var x = events[i].get_spawn_x();
-      var y = events[i].get_spawn_y();
-      var params = {
-        posX: x,
-        posY: y,
-        currentHeading: 4,
-        name: id.toString(),
-        num: id,
-        base: possColors.shift(),
-      };
-      newPlayers.push(params);
-
-      moves.push({
-        num: id,
-        left: false,
-        heading: 4,
-        referenceTime: new Date(birthMillis)
-      });
-    }
-  }
-
   if (pushedHeading != inputHeading) {
     rctx.apply_input(inputHeading); //removed await
     pushedHeading = inputHeading;
   }
 
+  var events = await rctx.take_events();
+  for (var i=events.length-1; i>=0; i--)
+    timeline.push(events[i]);
 
-  var frameData = {
-    frame: frame + 1,
-    moves: moves,
-  };
-
-  if (newPlayers.length > 0) frameData["newPlayers"] = newPlayers;
-
-  processFrame(frameData);
-  frame++;
+  processFrame();
   setTimeout(tick, 1000 / 60);
 }
 
