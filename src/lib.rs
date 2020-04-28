@@ -118,18 +118,22 @@ impl Context {
 
     pub fn spawn_player(&self, x: i32, y: i32) -> Promise {
         let inner = self.blockdag.clone_inner();
+        let new_key_pair_val = new_key_pair();
+        let addr = get_address(&get_public_key(&new_key_pair_val));
         self.keypair
             .write()
             .expect("Failed to acquire lock.")
-            .replace(new_key_pair()); // create new keypair
+            .replace(new_key_pair_val); // create new keypair
         let keypair = self.keypair.clone();
         let contract_address = self.contract_address;
         let event_sender = self.event_sender.clone();
 
         future_to_promise(async move {
-            let (_, trans) = inner
-                .lock()
-                .await
+            let mut remote = inner.lock().await;
+
+            remote.update_address(addr); // tip consensus manager will use our new address to ensure our tip selection includes our own transactions
+
+            let (_, trans) = remote
                 .execute_contract(
                     keypair
                         .read()
