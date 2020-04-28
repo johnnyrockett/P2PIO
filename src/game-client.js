@@ -99,15 +99,23 @@ async function connectGame(url, name, callback, flag) {
 
   // invokeRenderer("paint", []);
   callback(true, "");
-  setTimeout(tick, 0);
+
+  setTimeout(function() {
+    processFrame(Date.now());
+  }, 0)
 }
 
 function changeHeading(newHeading) {
   if (inputHeading === 4 || (
     newHeading != user.currentHeading &&
     (newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))
-  )
+  ) {
     inputHeading = newHeading;
+    if (pushedHeading != inputHeading) {
+      rctx.apply_input(inputHeading); //removed await
+      pushedHeading = inputHeading;
+    }
+  }
 }
 
 function getUser() {
@@ -172,13 +180,12 @@ function reverseFrame(data) {
   mimiRequestAnimationFrame(paintLoop);
 }
 
-function processFrame() {
+function processFrame(processTime) {
   // frameBuffer[bufferIndex] = frameState;
   // bufferIndex = (bufferIndex + 1) % frameBufferSize;
   // frame++;
-  var now = Date.now();
   var events = []
-  while (eventQueue[eventQueueHead] != null && now >= eventQueue[eventQueueHead].get_timestamp()) {
+  while (eventQueue[eventQueueHead] != null && processTime >= eventQueue[eventQueueHead].get_timestamp()) {
     events.push(eventQueue[eventQueueHead]);
     eventQueue[eventQueueHead] = null;
     eventQueueHead = eventQueueHead + 1 % eventQueueSize;
@@ -243,6 +250,20 @@ function processFrame() {
   update();
   dirty = true;
   mimiRequestAnimationFrame(paintLoop);
+
+  processTime += 1000/60;
+
+  var timeDif = Date.now() - processTime;
+  var waitTime;
+  if (timeDif < 0) { // time hasn't happened yet
+    waitTime = Math.min(Math.abs(timeDif), 1000/60);
+  } else { // Time has happened and we should hurry
+    waitTime = 0;
+  }
+
+  setTimeout(function() {
+    processFrame(processTime);
+  }, waitTime)
 }
 
 function paintLoop() {
@@ -302,24 +323,16 @@ function update() {
 
 async function syncTick() {
   await rctx.tips_sync();
-  setTimeout(syncTick, 50);
-}
 
-async function tick() {
-  if (user != undefined && user.dead) {
-    running = false;
-    return connectGame(
-      "//" + location.host,
-      user.name,
-      (success, msg) => {},
-      false
-    );
-  }
-
-  if (pushedHeading != inputHeading) {
-    rctx.apply_input(inputHeading); //removed await
-    pushedHeading = inputHeading;
-  }
+  // if (user != undefined && user.dead) {
+  //   running = false;
+  //   return connectGame(
+  //     "//" + location.host,
+  //     user.name,
+  //     (success, msg) => {},
+  //     false
+  //   );
+  // }
 
   var events = await rctx.take_events();
   for (var i=events.length-1; i>=0; i--) {
@@ -327,8 +340,7 @@ async function tick() {
     eventQueueTail = eventQueueTail + 1 % eventQueueSize;
   }
 
-  processFrame();
-  setTimeout(tick, 1000 / 60);
+  setTimeout(syncTick, 50);
 }
 
 function gridSerialData(grid, players) {

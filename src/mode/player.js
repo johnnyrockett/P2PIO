@@ -281,7 +281,7 @@ function update() {
 	});
 
 	//Zoom goes from 1 to .5, decreasing as portion goes up. TODO: maybe can modify this?
-	if (portionsRolling[user.num]) zoom = 1 / (portionsRolling[user.num].lag + 1);
+	if (user && portionsRolling[user.num]) zoom = 1 / (portionsRolling[user.num].lag + 1);
 	//TODO: animate player is dead. (maybe explosion?), and tail rewinds itself.
 	if (user) centerOnPlayer(user, animateTo);
 }
