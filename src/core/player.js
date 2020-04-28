@@ -426,16 +426,16 @@ function updateReferencePoint(data, referenceTime) {
     }
     data.posX = data.originX;
     data.posY = data.originY;
-    var { row, col } = this;
-    var oldr = this.tail.getPrevRow();
-    var oldc = this.tail.getPrevCol();
-    var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
-    this.tail.addTail(heading, count-1);
-    if (data.grid.get(row, col) === this) {
-      //Safe zone!
-      this.tail.fillTail();
-      this.tail.reposition(row, col);
-    }
+    // var { row, col } = this;
+    // var oldr = this.tail.getPrevRow();
+    // var oldc = this.tail.getPrevCol();
+    // var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
+    // this.tail.addTail(heading, count-1);
+    // if (data.grid.get(row, col) === this) {
+    //   //Safe zone!
+    //   this.tail.fillTail();
+    //   this.tail.reposition(row, col);
+    // }
   }
   data.referenceTime = referenceTime;
 }
@@ -476,16 +476,17 @@ function move(data, currentTime) {
 		data.dead = true;
 		return;
   }
-  var oldr = this.tail.getPrevRow();
-  var oldc = this.tail.getPrevCol();
-  var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
-  this.tail.addTail(heading, count-1);
-	//Update tail position
-	if (data.grid.get(row, col) === this) {
-		//Safe zone!
-		this.tail.fillTail();
-    this.tail.reposition(row, col);
-  }
+  // var oldr = this.tail.getPrevRow();
+  // var oldc = this.tail.getPrevCol();
+  // var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
+  // this.tail.addTail(heading, count-1);
+	// //Update tail position
+	// if (data.grid.get(row, col) === this) {
+	// 	//Safe zone!
+	// 	this.tail.fillTail();
+  //   this.tail.reposition(row, col);
+  // }
+
 	// } else {
   //   var oldr = this.tail.getPrevRow();
   //   var oldc = this.tail.getPrevCol();
