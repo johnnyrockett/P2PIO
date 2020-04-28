@@ -21,12 +21,17 @@ var bufferIndex = 0;
 
 var possColors = core.Color.possColors();
 
-var processingFrame = false;
 var rctx = undefined;
 var address = undefined;
 
-var timeline = [];
+var eventQueueHead = 0;
+var eventQueueTail = 0;
+var eventQueueSize = 100;
+var eventQueue = new Array(eventQueueSize).fill(null);
+
+var timelineSize = 1000;
 var timelineIndex = 0;
+var timeline = new Array(timelineSize);
 
 var inputHeading, pushedHeading;
 inputHeading = pushedHeading = 4;
@@ -173,9 +178,10 @@ function processFrame() {
   // frame++;
   var now = Date.now();
   var events = []
-  while (timeline.length > timelineIndex && now >= timeline[timelineIndex].get_timestamp()) {
-    events.push(timeline[timelineIndex]);
-    timelineIndex++;
+  while (eventQueue[eventQueueHead] != null && now >= eventQueue[eventQueueHead].get_timestamp()) {
+    events.push(eventQueue[eventQueueHead]);
+    eventQueue[eventQueueHead] = null;
+    eventQueueHead = eventQueueHead + 1 % eventQueueSize;
   }
 
   var newPlayers = [];
@@ -279,7 +285,7 @@ function setUser(player) {
 }
 
 function update() {
-  var num = Number(rctx.epoch_time());
+  var num = Date.now()
   var currentTime = new Date(num);
   var dead = [];
   core.updateFrame(grid, players, dead, (killer, other) => {
@@ -316,8 +322,10 @@ async function tick() {
   }
 
   var events = await rctx.take_events();
-  for (var i=events.length-1; i>=0; i--)
-    timeline.push(events[i]);
+  for (var i=events.length-1; i>=0; i--) {
+    eventQueue[eventQueueTail] = events[i];
+    eventQueueTail = eventQueueTail + 1 % eventQueueSize;
+  }
 
   processFrame();
   setTimeout(tick, 1000 / 60);

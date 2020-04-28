@@ -43,8 +43,9 @@ function TailMove(orientation, startRow, startCol) {
         return c[0] === this.startRow && c[1] >= this.startCol && c[1] <= this.startCol + this.move;
       case 3: // LEFT
         return c[0] === this.startRow && c[1] <= this.startCol && c[1] >= this.startCol - this.move;
+      case 4: // STILL (no tail)
+        return false;
     }
-    console.log("Invalid orientation");
   }
 	Object.defineProperty(this, "orientation", {
 		value: orientation,
@@ -433,9 +434,16 @@ function updateReferencePoint(data, referenceTime) {
     }
     var oldr = this.tail.getPrevRow();
     var oldc = this.tail.getPrevCol();
-    var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
-    if (count > 0)
-      this.tail.addTail(heading, count);
+    var count = 0;
+    switch (heading) {
+      case 0: count = oldr - row; break; //UP
+      case 1: count = col - oldc; break; //RIGHT
+      case 2: count = row - oldr; break; //DOWN
+      case 3: count = oldc - col; break; //LEFT
+      case 4: break; // Do nothing
+    }
+    // if (count > 0)
+    this.tail.addTail(heading, count);
     //Update tail position
     if (data.grid.get(row, col) === this) {
       //Safe zone!
@@ -466,7 +474,7 @@ function move(data, currentTime) {
 		case 1: data.posX = data.originX + offset; break; //RIGHT
 		case 2: data.posY = data.originY + offset; break; //DOWN
     case 3: data.posX = data.originX - offset; break; //LEFT
-    case 4: break; // Do nothing
+    case 4: return; // Do nothing
   }
 
 	//Check for out of bounds
@@ -477,9 +485,17 @@ function move(data, currentTime) {
   }
   var oldr = this.tail.getPrevRow();
   var oldc = this.tail.getPrevCol();
-  var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
-  if (count > 0)
-    this.tail.addTail(heading, count-1);
+  var count = 0;
+  switch (heading) {
+		case 0: count = oldr - row; break; //UP
+		case 1: count = col - oldc; break; //RIGHT
+		case 2: count = row - oldr; break; //DOWN
+    case 3: count = oldc - col; break; //LEFT
+    case 4: return; // Do nothing
+  }
+
+  // if (count > 0)
+  this.tail.addTail(heading, count-1);
 	//Update tail position
 	if (data.grid.get(row, col) === this) {
 		//Safe zone!

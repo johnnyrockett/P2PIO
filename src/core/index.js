@@ -16,8 +16,8 @@ exports.updateFrame = (grid, players, dead, notifyKill, currentTime) => {
 	if (dead instanceof Array) adead = dead;
 
 	var kill = (!notifyKill) ? () => {} : (killer, other) => {
-			if (!removing[other]) notifyKill(killer, other);
-		};
+		if (!removing[other]) notifyKill(killer, other);
+	};
 
 	//Move players
 	var tmp = players.filter(val => {
