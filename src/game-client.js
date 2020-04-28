@@ -58,6 +58,7 @@ try {
 async function connectGame(url, name, callback, flag) {
   if (running) return; //Prevent multiple runs
   running = true;
+  inputHeading = pushedHeading = 4;
   user = null;
   deadFrames = 0;
   var prefixes = consts.PREFIXES.split(" ");

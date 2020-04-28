@@ -65,13 +65,17 @@ function Tail(player, sdata) {
 
 	data.grid = player.grid;
 
-	defineInstanceMethods(this, data, addTail, getPrevRow, getPrevCol, hitsTail, fillTail, renderTail, reposition);
+	defineInstanceMethods(this, data, getTail, addTail, getPrevRow, getPrevCol, hitsTail, fillTail, renderTail, reposition);
 	Object.defineProperty(this, "moves", {
 		get: function() {
 			return data.tail.slice(0);
 		},
 		enumerable: true
 	});
+}
+
+function getTail(data) {
+  return data.tail;
 }
 
 function getPrevRow(data) {
@@ -85,7 +89,7 @@ function getPrevCol(data) {
 function addTail(data, orientation, count) {
   // Discounts bad counts
 	if (count === undefined) count = 1;
-  if (!count || count <= 0) return;
+  if (!count || count == 0) return;
 
 	var prev = data.prev;
 	var r = data.prevRow, c = data.prevCol;
@@ -402,15 +406,15 @@ function updateReferencePoint(data, referenceTime) {
     var difTime = referenceTime - data.referenceTime;
     var positionOffset = difTime / (1000 / consts.SPEEDFPS) * consts.SPEED;
 
+    var { heading } = this;
+
     var diff = positionOffset % consts.CELL_WIDTH;
     if (diff < consts.CELL_WIDTH/2) {
       positionOffset -= diff;
-      // remove last tail
     } else {
       positionOffset += consts.CELL_WIDTH - diff;
     }
 
-    var { heading } = this;
     switch (heading) {
       case 0: data.originY -= positionOffset; break; //UP
       case 1: data.originX += positionOffset; break; //RIGHT
@@ -420,16 +424,24 @@ function updateReferencePoint(data, referenceTime) {
     }
     data.posX = data.originX;
     data.posY = data.originY;
-    // var { row, col } = this;
-    // var oldr = this.tail.getPrevRow();
-    // var oldc = this.tail.getPrevCol();
-    // var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
-    // this.tail.addTail(heading, count-1);
-    // if (data.grid.get(row, col) === this) {
-    //   //Safe zone!
-    //   this.tail.fillTail();
-    //   this.tail.reposition(row, col);
-    // }
+
+    var { row, col } = this;
+
+    if (data.grid.isOutOfBounds(row, col)) {
+      data.dead = true;
+      return;
+    }
+    var oldr = this.tail.getPrevRow();
+    var oldc = this.tail.getPrevCol();
+    var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
+    if (count > 0)
+      this.tail.addTail(heading, count);
+    //Update tail position
+    if (data.grid.get(row, col) === this) {
+      //Safe zone!
+      this.tail.fillTail();
+      this.tail.reposition(row, col);
+    }
   }
   data.referenceTime = referenceTime;
 }
@@ -457,13 +469,6 @@ function move(data, currentTime) {
     case 4: break; // Do nothing
   }
 
-  // switch (heading) {
-	// 	case 0: data.posY -= consts.SPEED; break; //UP
-	// 	case 1: data.posX += consts.SPEED; break; //RIGHT
-	// 	case 2: data.posY += consts.SPEED; break; //DOWN
-  //   case 3: data.posX -= consts.SPEED; break; //LEFT
-  //   case 4: break;
-	// }
 	//Check for out of bounds
 	var { row, col } = this;
 	if (data.grid.isOutOfBounds(row, col)) {
@@ -473,7 +478,8 @@ function move(data, currentTime) {
   var oldr = this.tail.getPrevRow();
   var oldc = this.tail.getPrevCol();
   var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
-  this.tail.addTail(heading, count-1);
+  if (count > 0)
+    this.tail.addTail(heading, count-1);
 	//Update tail position
 	if (data.grid.get(row, col) === this) {
 		//Safe zone!
@@ -481,14 +487,6 @@ function move(data, currentTime) {
     this.tail.reposition(row, col);
   }
 
-	// } else {
-  //   var oldr = this.tail.getPrevRow();
-  //   var oldc = this.tail.getPrevCol();
-  //   var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
-  //   this.tail.addTail(heading, count-1);
-  // }
-	//If we are completely in a new cell (not in our safe zone), we add to the tail
-  // else if (this.posX % consts.CELL_WIDTH === 0 && this.posY % consts.CELL_WIDTH === 0) this.tail.addTail(heading);
 }
 
 function moveInverse(oldData, freshData) {
