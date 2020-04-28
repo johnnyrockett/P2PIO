@@ -29,18 +29,32 @@ function defineAccessorProperties(thisobj, data /*, names...*/) {
 	Object.defineProperties(thisobj, descript);
 }
 
-function TailMove(orientation) {
-	this.move = 1;
+function TailMove(orientation, startRow, startCol) {
+  this.move = 1;
+  this.startRow = startRow;
+  this.startCol = startCol;
+  this.onTail = function onTail(c) {
+    switch(this.orientation) {
+      case 0: // UP
+        return c[1] === this.startCol && c[0] <= this.startRow && c[0] >= this.startRow - this.move;
+      case 2: // DOWN
+        return c[1] === this.startCol && c[0] >= this.startRow && c[0] <= this.startRow + this.move;
+      case 1: // RIGHT
+        return c[0] === this.startRow && c[1] >= this.startCol && c[1] <= this.startCol + this.move;
+      case 3: // LEFT
+        return c[0] === this.startRow && c[1] <= this.startCol && c[1] >= this.startCol - this.move;
+    }
+    console.log("Invalid orientation");
+  }
 	Object.defineProperty(this, "orientation", {
 		value: orientation,
 		enumerable: true
-	});
+  });
 }
 
 function Tail(player, sdata) {
 	var data = {
 		tail: [],
-		tailGrid: [],
 		prev: null,
 		startRow: 0,
 		startCol: 0,
@@ -49,36 +63,15 @@ function Tail(player, sdata) {
 		player
 	};
 
-	if (sdata) {
-		data.startRow = data.prevRow = sdata.startRow || 0;
-		data.startCol = data.prevCol = sdata.startCol || 0;
-		sdata.tail.forEach(val => {
-			addTail(data, val.orientation, val.move);
-		});
-	}
 	data.grid = player.grid;
 
-	defineInstanceMethods(this, data, addTail, getPrevRow, getPrevCol, hitsTail, fillTail, renderTail, reposition, serialData);
+	defineInstanceMethods(this, data, addTail, getPrevRow, getPrevCol, hitsTail, fillTail, renderTail, reposition);
 	Object.defineProperty(this, "moves", {
 		get: function() {
 			return data.tail.slice(0);
 		},
 		enumerable: true
 	});
-}
-
-//Instance methods
-function serialData(data) {
-	return {
-		tail: data.tail,
-		startRow: data.startRow,
-		startCol: data.startCol
-	};
-}
-
-function setTailGrid(data, tailGrid, r, c) {
-	if (!tailGrid[r]) tailGrid[r] = [];
-	tailGrid[r][c] = true;
 }
 
 function getPrevRow(data) {
@@ -90,26 +83,23 @@ function getPrevCol(data) {
 }
 
 function addTail(data, orientation, count) {
+  // Discounts bad counts
 	if (count === undefined) count = 1;
-	if (!count || count <= 0) return;
+  if (!count || count <= 0) return;
 
 	var prev = data.prev;
 	var r = data.prevRow, c = data.prevCol;
-	if (data.tail.length === 0) setTailGrid(data, data.tailGrid, r, c);
 
 	if (!prev || prev.orientation !== orientation) {
-		prev = data.prev = new TailMove(orientation);
+    prev = data.prev = new TailMove(orientation, r, c);
 		data.tail.push(prev);
 		prev.move += count - 1;
 	}
 	else prev.move += count;
 
-	for (var i = 0; i < count; i++) {
-		var pos = walk([data.prevRow, data.prevCol], null, orientation, 1);
-		data.prevRow = pos[0];
-		data.prevCol = pos[1];
-		setTailGrid(data, data.tailGrid, pos[0], pos[1]);
-	}
+  var pos = walk([data.prevRow, data.prevCol], null, orientation, count);
+  data.prevRow = pos[0];
+  data.prevCol = pos[1];
 }
 
 function reposition(data, row, col) {
@@ -120,7 +110,6 @@ function reposition(data, row, col) {
 	else {
 		var ret = data.tail;
 		data.tail = [];
-		data.tailGrid = [];
 		return ret;
 	}
 }
@@ -209,7 +198,11 @@ function fillTail(data) {
 	if (data.tail.length === 0) return;
 
 	function onTail(c) {
-		return data.tailGrid[c[0]] && data.tailGrid[c[0]][c[1]];
+    for (var i=0; i<data.tail.length; i++) {
+      if (data.tail[i].onTail(c))
+        return true;
+    }
+    return false;
 	}
 
 	var grid = data.grid;
@@ -245,7 +238,12 @@ function fillTail(data) {
 
 function floodFill(data, grid, row, col, been) {
 	function onTail(c) {
-		return data.tailGrid[c[0]] && data.tailGrid[c[0]][c[1]];
+    for (var i=0; i<data.tail.length; i++) {
+      if (data.tail[i].onTail(c))
+        return true;
+    }
+
+    return false;
 	}
 
 	var start = [row, col];
@@ -288,9 +286,17 @@ function floodFill(data, grid, row, col, been) {
 }
 
 function hitsTail(data, other) {
+  var hits = false;
+  for (var i=0; i<data.tail.length; i++) {
+    if (data.tail[i].onTail([other.row, other.col])) {
+      hits = true;
+      break;
+    }
+  }
+
 	return (data.prevRow !== other.row || data.prevCol !== other.col)
 	&& (data.startRow !== other.row || data.startCol !== other.col)
-	&& !!(data.tailGrid[other.row] && data.tailGrid[other.row][other.col]);
+  && hits;
 }
 
 var SHADOW_OFFSET = 10;
@@ -335,18 +341,6 @@ function Player(grid, sdata) {
   this.move = move.bind(this, data);
   this.updateReferencePoint = updateReferencePoint.bind(this, data);
 	this.die = () => { data.dead = true; };
-	this.serialData = function() {
-		return {
-			base: this.baseColor,
-			num: data.num,
-			name: data.name,
-			posX: data.posX,
-			posY: data.posY,
-			currentHeading: data.currentHeading,
-			tail: data.tail.serialData(),
-			waitLag: data.waitLag
-		};
-	};
 
 	//Read-only Properties
 	defineAccessorProperties(this, data, "currentHeading", "dead", "name", "num", "posX", "posY", "grid", "tail", "waitLag");
@@ -476,16 +470,16 @@ function move(data, currentTime) {
 		data.dead = true;
 		return;
   }
-  // var oldr = this.tail.getPrevRow();
-  // var oldc = this.tail.getPrevCol();
-  // var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
-  // this.tail.addTail(heading, count-1);
-	// //Update tail position
-	// if (data.grid.get(row, col) === this) {
-	// 	//Safe zone!
-	// 	this.tail.fillTail();
-  //   this.tail.reposition(row, col);
-  // }
+  var oldr = this.tail.getPrevRow();
+  var oldc = this.tail.getPrevCol();
+  var count = Math.max(Math.abs(row-oldr), Math.abs(col-oldc));
+  this.tail.addTail(heading, count-1);
+	//Update tail position
+	if (data.grid.get(row, col) === this) {
+		//Safe zone!
+		this.tail.fillTail();
+    this.tail.reposition(row, col);
+  }
 
 	// } else {
   //   var oldr = this.tail.getPrevRow();
