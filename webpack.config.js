@@ -4,7 +4,7 @@ const webpack = require('webpack');
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
 module.exports = {
-    entry: './client.js',
+    entry: './client.js', // paper-io-bot.js
     output: {
         path: path.resolve(__dirname, 'public'),
         filename: 'js/bundle.js',
@@ -12,7 +12,8 @@ module.exports = {
     plugins: [
         // new HtmlWebpackPlugin(),
         new WasmPackPlugin({
-            crateDirectory: path.resolve(__dirname, ".")
+            crateDirectory: path.resolve(__dirname, "."),
+            // extraArgs: '--target nodejs'
         }),
         // Have this example work in Edge which doesn't ship `TextEncoder` or
         // `TextDecoder` at this time.
@@ -21,5 +22,9 @@ module.exports = {
             TextEncoder: ['text-encoding', 'TextEncoder']
         })
     ],
-    mode: 'development'
+    mode: 'development',
+    // target: 'node'
+    // node: {
+    //   fs: 'empty'
+    // }
 };

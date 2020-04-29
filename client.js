@@ -3,16 +3,19 @@
 // Basically everything that allows the client's understanding of the game state to be up to date
 
 const rust = import('./pkg');
-
+var config = require("./config.json");
 
 rust
   .then(m => {
     m.init();
     var urlParams = new URLSearchParams(window.location.search);
+    var contractID;
     if (!urlParams.has("id")) {
-        throw "Please add ?id=... where ... is your contract id, to the end of your url.";
+      contractID = config.contractID;
+    } else {
+      contractID = urlParams.get("id");
     }
-    return new m.Context("http://localhost:8090", urlParams.get("id"));
+    return new m.Context("http://localhost:8090", contractID);
   })
   .then(main)
   .catch(console.error);
@@ -25,24 +28,6 @@ async function main(rctx) {
 	console.log("Syncing tips");
 	await rctx.tips_sync();
 
-	// console.log("Spawning player");
-    // await rctx.spawn_player(0, 0); //half way between min and max of u32
-
-    // let address = rctx.get_address(); //TODO should be get_str_address()
-	// console.log("Address: ", address);
-
-	// console.log("Applying heading");
-	// await rctx.apply_input(1); //half way between min and max of u32
-
-	// console.log("Get player data");
-	// let player_location = await rctx.get_player(address); //half way between min and max of u32
-    // console.log("Current location ", player_location);
-    // console.log(player_location.x());
-
-
-
-
-    // var io = require("socket.io-client");
     var client = require("./src/game-client");
     client.giveContext(rctx);
     setTimeout(client.syncTick, 1000);

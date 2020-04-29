@@ -106,6 +106,9 @@ async function connectGame(url, name, callback, flag) {
 }
 
 function changeHeading(newHeading) {
+  if (!user)
+    return;
+
   if (inputHeading === 4 || (
     newHeading != user.currentHeading &&
     (newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))
@@ -181,9 +184,17 @@ function reverseFrame(data) {
 }
 
 function processFrame(processTime) {
-  // frameBuffer[bufferIndex] = frameState;
-  // bufferIndex = (bufferIndex + 1) % frameBufferSize;
-  // frame++;
+
+  if (user != undefined && user.dead) {
+    running = false;
+    return connectGame(
+      "//" + location.host,
+      user.name,
+      (success, msg) => {},
+      false
+    );
+  }
+
   var events = []
   while (eventQueue[eventQueueHead] != null && processTime >= eventQueue[eventQueueHead].get_timestamp()) {
     events.push(eventQueue[eventQueueHead]);
@@ -248,6 +259,7 @@ function processFrame(processTime) {
     }
   });
   update();
+  invokeRenderer("update");
   dirty = true;
   mimiRequestAnimationFrame(paintLoop);
 
@@ -323,16 +335,6 @@ function update() {
 
 async function syncTick() {
   await rctx.tips_sync();
-
-  // if (user != undefined && user.dead) {
-  //   running = false;
-  //   return connectGame(
-  //     "//" + location.host,
-  //     user.name,
-  //     (success, msg) => {},
-  //     false
-  //   );
-  // }
 
   var events = await rctx.take_events();
   for (var i=events.length-1; i>=0; i--) {

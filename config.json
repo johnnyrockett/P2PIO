@@ -1,12 +1,13 @@
 {
 	"dev": true,
-	"port": 5050,
+  "port": 5050,
+  "contractID": "15115460157513103215",
 	"bots": 0,
 	"consts": {
 		"GRID_COUNT": 100,
 		"CELL_WIDTH": 40,
     "SPEED": 5,
-    "SPEEDFPS": 30,
+    "SPEEDFPS": 45,
 		"BORDER_WIDTH": 20,
 		"MAX_PLAYERS": 70,
 		"NEW_PLAYER_LAG": 0,
