@@ -322,12 +322,7 @@ pub enum EventKind {
 }
 
 impl Event {
-    pub fn spawn(
-        id: String,
-        x: i32,
-        y: i32,
-        timestamp: u64,
-    ) -> Self {
+    pub fn spawn(id: String, x: i32, y: i32, timestamp: u64) -> Self {
         Event {
             id,
             x,
@@ -338,11 +333,7 @@ impl Event {
         }
     }
 
-    pub fn input(
-        id: String,
-        heading: u32,
-        timestamp: u64,
-    ) -> Self {
+    pub fn input(id: String, heading: u32, timestamp: u64) -> Self {
         Event {
             id,
             x: 0,
