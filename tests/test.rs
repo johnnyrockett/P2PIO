@@ -222,8 +222,8 @@ fn test_random() {
         commit(&mut dag1, "dag1", contract.clone());
         commit(&mut dag2, "dag2", contract.clone());
 
-        let spawn1 = spawn(&mut dag1, &key1, contract_id, "spawn1");
-        let spawn2 = spawn(&mut dag2, &key2, contract_id, "spawn2");
+        let spawn1 = spawn(&mut dag1, &key1, contract_id, "dag1-spawn");
+        let spawn2 = spawn(&mut dag2, &key2, contract_id, "dag2-spawn");
 
         if rng.gen::<f32>() <= 0.5 {
             commit(&mut dag1, "dag1", spawn1.clone());
@@ -248,7 +248,7 @@ fn test_random() {
 
             if rng.gen::<f32>() <= event_create_prob {
                 let heading = rng.gen::<u64>() % 4;
-                log::debug!("dag1 applying_input {}", heading);
+                log::debug!("dag1-#{}: applying_input {}", it, heading);
                 let inp1 = apply_input(
                     &mut dag1,
                     &key1,
@@ -261,7 +261,7 @@ fn test_random() {
             }
             if rng.gen::<f32>() <= event_create_prob {
                 let heading = rng.gen::<u64>() % 4;
-                log::debug!("dag2 applying_input {}", heading);
+                log::debug!("dag2-#{}: applying_input {}", it, heading);
                 let inp2 = apply_input(
                     &mut dag2,
                     &key2,
@@ -298,4 +298,70 @@ fn test_random() {
         }
         log::info!("Average queue len was {}", f64::from(queue_len_sum as i32) / f64::from(queue_len_count));
     }
+}
+
+
+#[test]
+fn test_simple_pattern() {
+    let _ = simple_logger::init_with_level(log::Level::Debug);
+
+    let path = "contract/pkg/p2pio_contract_bg.wasm";
+    let contract_src_bytes = fs::read(path).unwrap_or_else(|_| {
+        log::debug!("Generating wasm for contract.");
+        std::process::Command::new("wasm-pack")
+            .arg("build")
+            .current_dir("contract")
+            .output()
+            .expect("Failed to run wasm-pack build for contract.");
+        fs::read(path).expect(&format!(
+            "Failed to generate {} using wasm-pack build.",
+            path
+        ))
+    });
+    let contract_src = ContractSource::with_vec(contract_src_bytes);
+
+    let contract_key = new_key_pair();
+    let contract_id = get_address(&get_public_key(&contract_key));
+    let key1 = new_key_pair();
+    let key2 = new_key_pair();
+
+    let mut dag1 = GenericBlockDAG::<_, _, _, WasmiRuntime, _>::new(
+        HashMap::new(),
+        HashMap::new(),
+        HashMap::new(),
+        KeyTipManager::new(get_address(&get_public_key(&key1))),
+    );
+    let mut dag2 = GenericBlockDAG::<_, _, _, WasmiRuntime, _>::new(
+        HashMap::new(),
+        HashMap::new(),
+        HashMap::new(),
+        KeyTipManager::new(get_address(&get_public_key(&key2))),
+    );
+
+    let (contract_trans, contract_updates) = dag1
+        .deploy_contract::<rand::rngs::ThreadRng>(&contract_key, contract_src)
+        .unwrap();
+    let contract = ("contract".to_string(), contract_trans, contract_updates);
+    commit(&mut dag1, "dag1", contract.clone());
+    commit(&mut dag2, "dag2", contract.clone());
+
+    let spawn2 = spawn(&mut dag2, &key2, contract_id, "dag2-spawn");
+    let spawn1 = spawn(&mut dag1, &key1, contract_id, "dag1-spawn");
+
+    commit(&mut dag1, "dag1", spawn2.clone());
+    commit(&mut dag2, "dag2", spawn2.clone());
+    commit(&mut dag1, "dag1", spawn1.clone());
+    commit(&mut dag2, "dag2", spawn1.clone());
+
+
+    let dag1_num0 = apply_input(&mut dag1, &key1, contract_id, 2, "dag1-#0");
+    commit(&mut dag1, "dag1", dag1_num0.clone());
+
+    let dag2_num0 = apply_input(&mut dag2, &key2, contract_id, 2, "dag2_#0");
+    commit(&mut dag2, "dag2", dag2_num0.clone());
+
+    commit(&mut dag1, "dag1", dag2_num0.clone());
+
+    let dag1_num1 = apply_input(&mut dag1, &key1, contract_id, 0, "dag1_#1");
+    commit(&mut dag1, "dag1", dag1_num1.clone());
 }
