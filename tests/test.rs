@@ -49,6 +49,19 @@ fn apply_input<'a, DAG: 'a + BlockDAG<'a>>(
     (name.to_string(), transaction, updates)
 }
 
+// fn empty<'a, DAG: 'a + BlockDAG<'a>>(
+//     dag: &'a mut DAG,
+//     key: &EdDSAKeyPair,
+//     name: &str,
+// ) -> (String, Transaction, TransactionUpdates) {
+//     log::debug!("{}: empty_transaction", name);
+
+//     let (transaction, updates) = dag
+//         .empty_transaction::<rand::rngs::ThreadRng>(key)
+//         .unwrap();
+//     (name.to_string(), transaction, updates)
+// }
+
 fn commit<'a, DAG: 'a + BlockDAG<'a>>(
     dag: &'a mut DAG, dag_name: &'static str,
     trans_tuple: (String, Transaction, TransactionUpdates),
@@ -68,16 +81,17 @@ fn commit<'a, DAG: 'a + BlockDAG<'a>>(
 
 #[test]
 fn test_random() {
-    let _ = simple_logger::init_with_level(log::Level::Debug);
-    let num_repeats = 5;
-    let num_iterations = 50;
-    let event_create_prob = 0.5_f32;
-    let event_process_prob = 0.5_f32;
+    let _ = simple_logger::init_with_level(log::Level::Info);
+    let num_repeats = 3;
+    let num_iterations = 30;
+    let event_create_prob = 0.7_f32;
+    let event_process_prob = 0.01_f32;
 
-    // let seed = rand::random::<u64>();
+    let seed = rand::random::<u64>();
     // let seed = 11238392701941376174; // TRAP ERROR
     // let seed = 14553890773435112203; // MERGE ERROR #1
-    let seed = 7022097552530202943; // MERGE ERROR #2
+    // let seed = 7022097552530202943; // MERGE ERROR #2
+    // let seed = 15188642358638242036; // MERGE ERROR #3
     log::info!("Using seed {}", seed);
 
     let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
@@ -154,6 +168,10 @@ fn test_random() {
             log::info!("Iteration #{}", it);
 
             if rng.gen::<f32>() <= event_create_prob {
+                // let e = empty(&mut dag1, &key1, &format!("dag1-#{}-empty", it));
+                // commit(&mut dag1, "dag1", e.clone());
+                // queue2.push_back(e);
+
                 let heading = rng.gen::<u64>() % 4;
                 let inp1 = apply_input(
                     &mut dag1,
@@ -166,6 +184,10 @@ fn test_random() {
                 queue2.push_back(inp1);
             }
             if rng.gen::<f32>() <= event_create_prob {
+                // let e = empty(&mut dag2, &key2, &format!("dag2-#{}-empty", it));
+                // commit(&mut dag2, "dag2", e.clone());
+                // queue1.push_back(e);
+
                 let heading = rng.gen::<u64>() % 4;
                 let inp2 = apply_input(
                     &mut dag2,
