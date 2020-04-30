@@ -68,15 +68,16 @@ fn commit<'a, DAG: 'a + BlockDAG<'a>>(
 
 #[test]
 fn test_random() {
-    let _ = simple_logger::init_with_level(log::Level::Info);
-    let num_repeats = 1;
-    let num_iterations = 5;
+    let _ = simple_logger::init_with_level(log::Level::Debug);
+    let num_repeats = 5;
+    let num_iterations = 50;
     let event_create_prob = 0.5_f32;
     let event_process_prob = 0.5_f32;
 
     // let seed = rand::random::<u64>();
     // let seed = 11238392701941376174; // TRAP ERROR
-    let seed = 14553890773435112203; // MERGE ERROR
+    // let seed = 14553890773435112203; // MERGE ERROR #1
+    let seed = 7022097552530202943; // MERGE ERROR #2
     log::info!("Using seed {}", seed);
 
     let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
@@ -205,7 +206,7 @@ fn test_random() {
 }
 
 #[test]
-fn test_simple_pattern() {
+fn test_same_depth_ancestors() {
     let _ = simple_logger::init_with_level(log::Level::Debug);
 
     let path = "contract/pkg/p2pio_contract_bg.wasm";
@@ -270,5 +271,84 @@ fn test_simple_pattern() {
 
     let dag2_num2 = apply_input(&mut dag2, &key2, contract_id, 0, "dag2_#2");
     commit(&mut dag2, "dag2", dag2_num2.clone());
+
+}
+
+#[test]
+fn test_double_ancestor() {
+    let _ = simple_logger::init_with_level(log::Level::Debug);
+
+    let path = "contract/pkg/p2pio_contract_bg.wasm";
+    let contract_src_bytes = fs::read(path).unwrap_or_else(|_| {
+        log::debug!("Generating wasm for contract.");
+        std::process::Command::new("wasm-pack")
+            .arg("build")
+            .current_dir("contract")
+            .output()
+            .expect("Failed to run wasm-pack build for contract.");
+        fs::read(path).expect(&format!(
+            "Failed to generate {} using wasm-pack build.",
+            path
+        ))
+    });
+    let contract_src = ContractSource::with_vec(contract_src_bytes);
+
+    let contract_key = new_key_pair();
+    let contract_id = get_address(&get_public_key(&contract_key));
+    let key1 = new_key_pair();
+    let key2 = new_key_pair();
+
+    let mut dag1 = GenericBlockDAG::<_, _, _, WasmiRuntime, _>::new(
+        HashMap::new(),
+        HashMap::new(),
+        HashMap::new(),
+        KeyTipManager::new(get_address(&get_public_key(&key1))),
+    );
+    let mut dag2 = GenericBlockDAG::<_, _, _, WasmiRuntime, _>::new(
+        HashMap::new(),
+        HashMap::new(),
+        HashMap::new(),
+        KeyTipManager::new(get_address(&get_public_key(&key2))),
+    );
+
+    let (contract_trans, contract_updates) = dag1
+        .deploy_contract::<rand::rngs::ThreadRng>(&contract_key, contract_src)
+        .unwrap();
+    let contract = ("contract".to_string(), contract_trans, contract_updates);
+    commit(&mut dag1, "dag1", contract.clone());
+    commit(&mut dag2, "dag2", contract.clone());
+
+    let spawn2 = spawn(&mut dag2, &key2, contract_id, "dag2-spawn");
+    commit(&mut dag1, "dag1", spawn2.clone());
+    commit(&mut dag2, "dag2", spawn2.clone());
+    let spawn1 = spawn(&mut dag1, &key1, contract_id, "dag1-spawn");
+    commit(&mut dag1, "dag1", spawn1.clone());
+    commit(&mut dag2, "dag2", spawn1.clone());
+
+
+    let dag1_num1 = apply_input(&mut dag1, &key1, contract_id, 0, "dag1-#1");
+    commit(&mut dag1, "dag1", dag1_num1.clone());
+
+    let dag2_num1 = apply_input(&mut dag2, &key2, contract_id, 2, "dag2_#1");
+    commit(&mut dag2, "dag2", dag2_num1.clone());
+
+    commit(&mut dag1, "dag1", dag2_num1.clone());
+    commit(&mut dag2, "dag2", dag1_num1.clone());
+
+    let dag1_num2 = apply_input(&mut dag1, &key1, contract_id, 0, "dag1-#2");
+    commit(&mut dag1, "dag1", dag1_num2.clone());
+
+    let dag2_num2 = apply_input(&mut dag2, &key2, contract_id, 2, "dag2_#2");
+    commit(&mut dag2, "dag2", dag2_num2.clone());
+
+    commit(&mut dag1, "dag1", dag2_num2.clone());
+    commit(&mut dag2, "dag2", dag1_num2.clone());
+
+
+    // let dag1_num2 = apply_input(&mut dag1, &key1, contract_id, 3, "dag1-#2");
+    // commit(&mut dag1, "dag1", dag1_num2.clone());
+
+    let dag2_num3 = apply_input(&mut dag2, &key2, contract_id, 0, "dag2_#3");
+    commit(&mut dag2, "dag2", dag2_num3.clone());
 
 }
