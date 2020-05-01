@@ -1,7 +1,7 @@
 {
 	"dev": true,
   "port": 5050,
-  "contractID": "15115460157513103215",
+  "contractID": "7382977913628775120",
 	"bots": 0,
 	"consts": {
 		"GRID_COUNT": 100,

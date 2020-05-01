@@ -4,7 +4,7 @@ const webpack = require('webpack');
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
 module.exports = {
-    entry: './client.js', // paper-io-bot.js
+    entry:  './client.js', //'./paper-io-bot.js', //
     output: {
         path: path.resolve(__dirname, 'public'),
         filename: 'js/bundle.js',

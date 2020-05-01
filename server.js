@@ -42,7 +42,8 @@ server.listen(port, () => {
 app.use(express.static(path.join(__dirname, "public")));
 
 for (var i = 0; i < parseInt(config.bots); i++) {
-	exec(`node ${path.join(__dirname, "paper-io-bot.js")} ws://localhost:${port}`, (error, stdout, stderr) => {
+  var cmd = '/Applications/Firefox.app/Contents/MacOS/firefox --headless -new-instance -P "BOT' + i + '" http://127.0.0.1:5050/:5050';
+	exec(cmd, (error, stdout, stderr) => {
 		if (error) {
 			console.error("error: " + error);
 			return;

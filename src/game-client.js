@@ -110,8 +110,8 @@ function changeHeading(newHeading) {
     return;
 
   if (inputHeading === 4 || (
-    newHeading != user.currentHeading &&
-    (newHeading % 2 === 0) ^ (user.currentHeading % 2 === 0))
+    newHeading != pushedHeading &&
+    (newHeading % 2 === 0) ^ (pushedHeading % 2 === 0))
   ) {
     inputHeading = newHeading;
     if (pushedHeading != inputHeading) {
