@@ -92,6 +92,7 @@ fn test_random() {
     // let seed = 14553890773435112203; // MERGE ERROR #1
     // let seed = 7022097552530202943; // MERGE ERROR #2
     // let seed = 15188642358638242036; // MERGE ERROR #3
+    // let seed = 9106573325165782839; // MERGE ERROR #4
     log::info!("Using seed {}", seed);
 
     let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
