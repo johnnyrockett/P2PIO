@@ -4,7 +4,7 @@
   "contractID": "7382977913628775120",
 	"bots": 0,
 	"consts": {
-		"GRID_COUNT": 100,
+		"GRID_COUNT": 300,
 		"CELL_WIDTH": 40,
     "SPEED": 5,
     "SPEEDFPS": 45,

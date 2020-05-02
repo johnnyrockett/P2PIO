@@ -59,6 +59,16 @@ try {
   };
 }
 
+async function spawnIn() {
+  var start = findEmpty(grid);
+
+  if (!start) return false;
+  var x = start.col * consts.CELL_WIDTH;
+  var y = start.row * consts.CELL_WIDTH;
+  await rctx.spawn_player(x, y);
+  address = rctx.get_address();
+}
+
 //Public API
 async function connectGame(url, name, callback, flag) {
   if (running) return; //Prevent multiple runs
@@ -79,9 +89,6 @@ async function connectGame(url, name, callback, flag) {
   reset();
   console.log("Reset game");
 
-  // For each player on the dag, run these two lines below
-  var start = findEmpty(grid);
-
   var gridData = new Uint8Array(serialGrid);
   for (var r = 0; r < grid.size; r++) {
     for (var c = 0; c < grid.size; c++) {
@@ -91,11 +98,7 @@ async function connectGame(url, name, callback, flag) {
   }
   var serialGrid = gridSerialData(grid, players);
 
-  if (!start) return false;
-  var x = start.col * consts.CELL_WIDTH;
-  var y = start.row * consts.CELL_WIDTH;
-  await rctx.spawn_player(x, y);
-  address = rctx.get_address();
+  spawnIn();
 
   // invokeRenderer("paint", []);
   callback(true, "");
@@ -186,13 +189,8 @@ function reverseFrame(data) {
 function processFrame(processTime) {
 
   if (user != undefined && user.dead) {
-    running = false;
-    return connectGame(
-      "//" + location.host,
-      user.name,
-      (success, msg) => {},
-      false
-    );
+    user = undefined;
+    spawnIn();
   }
 
   var events = []

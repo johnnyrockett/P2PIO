@@ -85,7 +85,7 @@ function Loc(row, col) {
 
 function update() {
   endFrame++;
-  if (user && endFrame % 6 == 0) {
+  if (user && endFrame % 120 == 0) {
     grid = client.grid;
     others = client.getOthers();
 
