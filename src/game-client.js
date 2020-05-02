@@ -62,6 +62,8 @@ try {
 async function spawnIn() {
   var start = findEmpty(grid);
 
+  inputHeading = pushedHeading = 4;
+
   if (!start) return false;
   var x = start.col * consts.CELL_WIDTH;
   var y = start.row * consts.CELL_WIDTH;
@@ -73,7 +75,6 @@ async function spawnIn() {
 async function connectGame(url, name, callback, flag) {
   if (running) return; //Prevent multiple runs
   running = true;
-  inputHeading = pushedHeading = 4;
   user = null;
   deadFrames = 0;
   var prefixes = consts.PREFIXES.split(" ");
