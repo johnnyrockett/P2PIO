@@ -1,67 +1,85 @@
-# Paper.IO
+# P2P.IO
 
-> This is a clone of the original Paper-IO released by Voodoo, except for one aspect. This will attempt to implement a multi-player aspect of the game (like a real IO game). Currently this has a playground at this [link](https://thekidofarcrania.github.io/BlocklyIO). It's a demo version of what to come. Hopefully by that time, the necessary server infrastructure could be obtained.
+This is a version of the game Paper.IO that takes advantage of a Merkle DAG to maintain game state between peers.
 
-> This is just a fun side-project for me. If you would want to use this code, it would be nice to let me know.
-
-## Screenshots
-
-![Screenshot](screenshot.png)
+![Screenshot](demo.png)
 
 ## Install
 
 ```bash
-# Clone this repository
-git clone https://github.com/stevenjoezhang/paper.io.git
+# Clone this repository and its submodule
+git clone https://github.com/johnnyrockett/P2PIO.git --recurse-submodules
 # Go into the repository
-cd paper.io
+cd p2pIO
 # Install dependencies
 npm install
 ```
 
+Also install tools relating to the Rust language like cargo.
+
+```bash
+curl --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+When prompted, enter "2" to customize the installation.
+When prompted for "Default toolchain?", enter "nightly". Press enter for all other prompts.
+
+To configure your current shell, run the command below.
+
+```bash
+source $HOME/.cargo/env
+```
+
 ## Usage
 
-After cloning this repository, run the follow commands to install dependencies and set up server. Enjoy!
-
 ```bash
-npm start
+cd contract
+cargo install wasm-pack
+cd ../rustdag/cli
+cargo run server -p 8090 -a 0.0.0.0
 ```
 
-You can configure the game by editing `config.json`.
-
-## Build
+*new terminal*
 
 ```bash
-npm run build
+cd rustdag/cli
+cargo run key generate contract.key
+cargo run -- -s=http://localhost:8090/ deploy contract.key ../../contract/pkg/p2pio_contract_bg.wasm
 ```
 
-**WARNING: Remember to build again after editing any file, include `config.json`.**
+Copy the "Contract ID" returned by this command. In config.json, change the contractID field to this value.
+
+*new terminal*
+
+```bash
+npm run build && npm start
+```
+
+Going to the printed url should launch the client. Confirmed working on Firefox.
+
+To add other machines as peers, all peers must run the command below for all other peers.
+
+```bash
+cargo run -- add-peer --url "{peer's ip}:8090"
+```
 
 ## Bots
 
-Set `bots` in `config.json` to a non-zero value, or execute the command below:
+1. Set `bots` in `config.json` to a non-zero value
+2. Modify webpack.config.js to use ./paper-io-bot.js as the entry point instead of ./client.js
+3. Modify server.js to use your system's path to Firefox. The current path listed should be valid for MacOS.
+4. Create firefox profiles named "BOT0" through "BOTN" where n is the max number of bots that your server is simulating. You can do this using the command:
 
 ```bash
-node paper-io-bot.js ws://localhost:8080
+firefox -ProfileManager
 ```
 
-or
+5. Repeat the usage steps above but add another machine as a peer using the following command
 
 ```bash
-node bot.js ws://localhost:8080
+cargo run -- add-peer --url "{peer's ip}:8090"
 ```
 
-## Roadmap & TODO List
+The peer machine should also add you as a peer in this scenario.
 
-- [x] 统一配置文件
-- [x] 玩家观战模式
-- [ ] 更多游戏玩法
-- [ ] 多个游戏房间
-- [ ] 加快渲染速度
-- [ ] 优化胜负判定
-
-## License
-
-This repo is forked from [BlocklyIO](https://github.com/theKidOfArcrania/BlocklyIO) by theKidOfArcrania.
-
-> This is licensed under MIT. As such, please provide due credit and link back to this repository if possible.
+Your machine will now act as a bot server simulating the number of bots specified playing the game. Any other machine connected as a peer will be able to play with the bots.
